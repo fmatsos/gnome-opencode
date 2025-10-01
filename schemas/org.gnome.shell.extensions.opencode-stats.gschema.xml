@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="org.gnome.shell.extensions.opencode-stats" path="/org/gnome/shell/extensions/opencode-stats/">
+    
+    <key name="idle-threshold-minutes" type="i">
+      <default>15</default>
+      <summary>Idle Threshold (Minutes)</summary>
+      <description>Number of minutes of inactivity before showing idle notification</description>
+      <range min="1" max="120"/>
+    </key>
+    
+    <key name="update-interval-seconds" type="i">
+      <default>60</default>
+      <summary>Update Interval (Seconds)</summary>
+      <description>Polling interval in seconds for checking statistics (fallback when file monitoring is disabled)</description>
+      <range min="10" max="600"/>
+    </key>
+    
+    <key name="file-monitor-enabled" type="b">
+      <default>true</default>
+      <summary>Enable Real-time File Monitoring</summary>
+      <description>Enable real-time file monitoring for instant updates when OpenCode processes tokens</description>
+    </key>
+    
+  </schema>
+</schemalist>
