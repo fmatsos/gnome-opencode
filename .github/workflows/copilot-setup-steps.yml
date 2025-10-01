@@ -1,0 +1,54 @@
+name: Copilot Setup Steps
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  setup-mcp-tools:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Verify Node.js installation
+        run: |
+          node --version
+          npm --version
+
+      - name: Install uv (Python package installer)
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Verify uv installation
+        run: |
+          source $HOME/.local/bin/env
+          uv --version
+
+      - name: Install uvx
+        run: |
+          source $HOME/.local/bin/env
+          uv tool install uvx || echo "uvx is included with uv"
+
+      - name: Verify uvx availability
+        run: |
+          source $HOME/.local/bin/env
+          uvx --version || uv tool run --help
+
+      - name: Summary
+        run: |
+          echo "✅ Node.js and npm installed successfully"
+          echo "✅ uv/uvx installed successfully"
+          echo ""
+          echo "Tools are ready for MCP (Model Context Protocol) configuration"
