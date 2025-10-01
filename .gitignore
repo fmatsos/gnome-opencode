@@ -1,0 +1,24 @@
+# Build artifacts
+*.zip
+!example-*.zip
+*.tar.gz
+*.tar.xz
+
+# Test data
+test-statistics.json
+
+# Editor files
+*~
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+/tmp/
+*.tmp
+*.bak
