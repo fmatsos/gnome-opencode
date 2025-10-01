@@ -1,0 +1,28 @@
+{
+  "session": {
+    "totalTokens": 1500,
+    "tokensByModel": {
+      "gpt-4-turbo": 1000,
+      "claude-3-opus": 500
+    },
+    "lastActivity": 1704384000000,
+    "startTime": 1704380400000
+  },
+  "daily": {
+    "totalTokens": 5000,
+    "tokensByModel": {
+      "gpt-4-turbo": 3000,
+      "claude-3-opus": 2000
+    },
+    "date": "2024-01-04"
+  },
+  "total": {
+    "totalTokens": 50000,
+    "tokensByModel": {
+      "gpt-4-turbo": 30000,
+      "claude-3-opus": 15000,
+      "gpt-3.5-turbo": 5000
+    },
+    "installDate": 1701792000000
+  }
+}
