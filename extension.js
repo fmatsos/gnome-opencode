@@ -23,6 +23,7 @@ class OpencodeIndicator extends PanelMenu.Button {
         super._init(0.0, 'OpenCode Statistics');
         
         this._extension = extension;
+        this._idleNotificationShown = false;
         this._dataManager = new DataManager(extension, () => {
             // Callback when data is updated from file monitor
             this._updateDisplay();
@@ -198,11 +199,20 @@ class OpencodeIndicator extends PanelMenu.Button {
         let now = Date.now();
         let idleMinutes = (now - lastActivityTime) / (1000 * 60);
         
+        // Show idle notification if session has been idle for the threshold duration
+        // Notification will show for ~5 seconds and can be manually closed by user
         if (idleMinutes >= IDLE_THRESHOLD_MINUTES && stats.session.tokens > 0) {
-            Main.notify(
-                'OpenCode Session Idle',
-                `Your OpenCode session has been idle for ${Math.floor(idleMinutes)} minutes`
-            );
+            // Only show notification once per idle period to avoid spam
+            if (!this._idleNotificationShown) {
+                Main.notify(
+                    'OpenCode Session Idle',
+                    `Your OpenCode session has been idle for ${Math.floor(idleMinutes)} minutes`
+                );
+                this._idleNotificationShown = true;
+            }
+        } else {
+            // Reset flag when session becomes active again
+            this._idleNotificationShown = false;
         }
     }
     
