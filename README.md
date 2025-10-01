@@ -89,26 +89,24 @@ Note: The extension expects OpenCode to maintain its own statistics file. If thi
 
 ## Configuration
 
-### Idle Threshold
+### Preferences
 
-The default idle threshold is 15 minutes. To change this, edit `extension.js` and modify:
-```javascript
-const IDLE_THRESHOLD_MINUTES = 15;
-```
+All timing settings can be configured through the GNOME Extensions preferences UI:
+
+1. Open **Extensions** app (or run `gnome-extensions prefs opencode-stats@fmatsos.github.com`)
+2. Find **OpenCode Statistics** extension
+3. Click the ⚙️ settings icon
+4. Configure:
+   - **Idle Threshold**: Minutes before showing idle notification (1-120, default: 15)
+   - **Polling Interval**: Fallback check frequency in seconds (10-600, default: 60)
+   - **File Monitoring**: Enable/disable real-time updates (default: enabled)
+5. Reload extension (disable/enable) to apply changes
 
 ### Update Mechanism
 
 The extension uses **real-time file monitoring** to detect changes to OpenCode's statistics file. When OpenCode processes tokens, the extension updates **immediately** without waiting for a polling interval.
 
-A 60-second polling fallback ensures updates even if file monitoring fails. To adjust the fallback interval:
-```javascript
-const UPDATE_INTERVAL_SECONDS = 60;  // Fallback polling interval
-```
-
-To disable real-time file monitoring and use only polling:
-```javascript
-const FILE_MONITOR_ENABLED = false;
-```
+A 60-second polling fallback ensures updates even if file monitoring fails. Both the polling interval and file monitoring can be configured in the preferences UI (see above).
 
 ## OpenCode Integration
 

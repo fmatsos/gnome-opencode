@@ -12,11 +12,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - "Last update" label in popup menu showing when statistics were last refreshed
 - Automatic detection of stats file changes with immediate UI updates
 - Proper file monitor cleanup on extension disable
+- Idle notification spam prevention - shows only once per idle period
+- **Preferences UI** for configurable timing settings (no code editing required)
+- GSettings schema for persistent configuration
+- Configurable idle threshold (1-120 minutes)
+- Configurable polling interval (10-600 seconds)
+- Toggle for enabling/disabling file monitoring
 
 ### Changed
 - Update mechanism now uses file monitoring with 60-second polling as fallback (previously polling-only)
 - DataManager now accepts callback for real-time UI updates
 - Improved responsiveness - no need to wait up to 60 seconds for updates
+- Timing constants replaced with GSettings for user-configurable values
+- Idle notification behavior improved with smart reset logic
 
 ## [1.0.0] - 2024-01-04
 
