@@ -15,6 +15,7 @@ import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 
 const IDLE_THRESHOLD_MINUTES = 15;
 const UPDATE_INTERVAL_SECONDS = 60;
+const FILE_MONITOR_ENABLED = true;
 
 const OpencodeIndicator = GObject.registerClass(
 class OpencodeIndicator extends PanelMenu.Button {
@@ -22,7 +23,10 @@ class OpencodeIndicator extends PanelMenu.Button {
         super._init(0.0, 'OpenCode Statistics');
         
         this._extension = extension;
-        this._dataManager = new DataManager(extension);
+        this._dataManager = new DataManager(extension, () => {
+            // Callback when data is updated from file monitor
+            this._updateDisplay();
+        });
         
         // Create icon
         let icon = new St.Icon({
@@ -101,6 +105,14 @@ class OpencodeIndicator extends PanelMenu.Button {
         this.menu.addMenuItem(this._totalSection);
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
         
+        // Last update label
+        this._lastUpdateLabel = new PopupMenu.PopupMenuItem('Last update: Never', {
+            reactive: false,
+            style_class: 'opencode-stats-item'
+        });
+        this.menu.addMenuItem(this._lastUpdateLabel);
+        this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+        
         // Refresh button
         let refreshItem = new PopupMenu.PopupMenuItem('Refresh Statistics');
         refreshItem.connect('activate', () => {
@@ -121,6 +133,33 @@ class OpencodeIndicator extends PanelMenu.Button {
         
         // Update total stats
         this._totalLabel.label.text = `Total: ${this._formatTokens(stats.total.tokens)} tokens`;
+        
+        // Update last update time
+        let lastUpdate = this._dataManager.getLastUpdateTime();
+        if (lastUpdate) {
+            this._lastUpdateLabel.label.text = `Last update: ${this._formatLastUpdate(lastUpdate)}`;
+        } else {
+            this._lastUpdateLabel.label.text = 'Last update: Never';
+        }
+    }
+    
+    _formatLastUpdate(timestamp) {
+        let now = Date.now();
+        let diffMs = now - timestamp;
+        let diffSec = Math.floor(diffMs / 1000);
+        
+        if (diffSec < 60) {
+            return 'Just now';
+        } else if (diffSec < 3600) {
+            let minutes = Math.floor(diffSec / 60);
+            return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+        } else if (diffSec < 86400) {
+            let hours = Math.floor(diffSec / 3600);
+            return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+        } else {
+            let date = new Date(timestamp);
+            return date.toLocaleString();
+        }
     }
     
     _formatTokens(tokens) {
@@ -172,17 +211,33 @@ class OpencodeIndicator extends PanelMenu.Button {
             GLib.source_remove(this._idleCheckerId);
             this._idleCheckerId = null;
         }
+        if (this._dataManager) {
+            this._dataManager.destroy();
+            this._dataManager = null;
+        }
         super.destroy();
     }
 });
 
 class DataManager {
-    constructor(extension) {
+    constructor(extension, updateCallback) {
         this._extension = extension;
+        this._updateCallback = updateCallback;
+        this._lastUpdateTime = null;
+        this._fileMonitor = null;
+        
         this._dataFile = GLib.build_filenamev([
             GLib.get_user_data_dir(),
             'gnome-opencode',
             'statistics.json'
+        ]);
+        
+        this._opencodeStatsPath = GLib.build_filenamev([
+            GLib.get_home_dir(),
+            '.local',
+            'share',
+            'opencode',
+            'stats.json'
         ]);
         
         this._ensureDataDirectory();
@@ -190,6 +245,11 @@ class DataManager {
         
         // Try to fetch initial data from OpenCode
         this._fetchFromOpencode();
+        
+        // Set up file monitor for real-time updates
+        if (FILE_MONITOR_ENABLED) {
+            this._setupFileMonitor();
+        }
     }
     
     _ensureDataDirectory() {
@@ -278,21 +338,14 @@ class DataManager {
         }
         
         // Try to read OpenCode's stats file if it exists
-        let opencodePath = GLib.build_filenamev([
-            GLib.get_home_dir(),
-            '.local',
-            'share',
-            'opencode',
-            'stats.json'
-        ]);
-        
         try {
-            let file = Gio.File.new_for_path(opencodePath);
+            let file = Gio.File.new_for_path(this._opencodeStatsPath);
             if (file.query_exists(null)) {
                 let [success, contents] = file.load_contents(null);
                 if (success) {
                     let opencodeStats = JSON.parse(new TextDecoder().decode(contents));
                     this._updateFromOpencodeStats(opencodeStats);
+                    this._lastUpdateTime = Date.now();
                 }
             }
         } catch (e) {
@@ -330,6 +383,52 @@ class DataManager {
     
     fetchFromOpencode() {
         this._fetchFromOpencode();
+    }
+    
+    getLastUpdateTime() {
+        return this._lastUpdateTime;
+    }
+    
+    _setupFileMonitor() {
+        try {
+            let file = Gio.File.new_for_path(this._opencodeStatsPath);
+            
+            // Create parent directory if it doesn't exist
+            let parentDir = file.get_parent();
+            if (parentDir && !parentDir.query_exists(null)) {
+                try {
+                    parentDir.make_directory_with_parents(null);
+                } catch (e) {
+                    // Directory might already exist, ignore
+                }
+            }
+            
+            // Set up file monitor
+            this._fileMonitor = file.monitor_file(Gio.FileMonitorFlags.NONE, null);
+            this._fileMonitor.connect('changed', (monitor, file, otherFile, eventType) => {
+                // Only react to changes and creations
+                if (eventType === Gio.FileMonitorEvent.CHANGED || 
+                    eventType === Gio.FileMonitorEvent.CREATED ||
+                    eventType === Gio.FileMonitorEvent.CHANGES_DONE_HINT) {
+                    log('[OpenCode Stats] File changed, updating...');
+                    this._fetchFromOpencode();
+                    if (this._updateCallback) {
+                        this._updateCallback();
+                    }
+                }
+            });
+            
+            log('[OpenCode Stats] File monitor set up for: ' + this._opencodeStatsPath);
+        } catch (e) {
+            logError(e, '[OpenCode Stats] Failed to set up file monitor');
+        }
+    }
+    
+    destroy() {
+        if (this._fileMonitor) {
+            this._fileMonitor.cancel();
+            this._fileMonitor = null;
+        }
     }
 }
 
