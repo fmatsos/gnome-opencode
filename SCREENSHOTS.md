@@ -50,7 +50,20 @@ When you click the terminal icon, a dropdown menu appears with the following sec
 - Shows all-time token usage since installation
 - "View Total Details" displays comprehensive model breakdown
 
-### 4. Actions Section
+### 4. Last Update Information
+
+```
+├─────────────────────────────────────┤
+│ Last update: Just now               │  ← Non-clickable, informational
+├─────────────────────────────────────┤
+```
+
+- Shows when statistics were last refreshed
+- Updates in real-time when data changes
+- Displays relative time: "Just now", "5 minutes ago", "2 hours ago"
+- Shows exact date/time for updates older than 24 hours
+
+### 5. Actions Section
 
 ```
 ├─────────────────────────────────────┤
@@ -60,6 +73,7 @@ When you click the terminal icon, a dropdown menu appears with the following sec
 
 - Manually triggers data refresh from OpenCode
 - Useful after intensive coding sessions
+- Updates the "Last update" timestamp
 
 ## Model Breakdown Notifications
 
@@ -149,6 +163,15 @@ The extension automatically adapts to:
 
 All visual elements use theme-aware colors.
 
+## New Features (Current Version)
+
+### Real-time Updates
+The extension now uses file monitoring to detect changes instantly:
+- Updates appear immediately when OpenCode processes tokens
+- No need to wait for the 60-second polling interval
+- "Last update" label shows when data was refreshed
+- Real-time feedback for active development sessions
+
 ## Future Visual Enhancements
 
 Planned improvements:
@@ -181,12 +204,13 @@ For contributors creating screenshots:
 
 ### Areas to Screenshot
 1. Top bar with extension icon
-2. Full dropdown menu
+2. Full dropdown menu (with "Last update" label)
 3. Session details notification
 4. Daily details notification
 5. Total details notification
 6. Idle warning notification
 7. Refresh action in progress
+8. "Last update" label showing different time formats
 
 ## Example Visual Layouts
 
