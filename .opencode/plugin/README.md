@@ -13,6 +13,8 @@ The plugin:
 - **Exports data** to `~/.local/share/opencode/stats.json`
 - **Per-model breakdown**: Tracks usage separately for each AI model (GPT-4, Claude, etc.)
 - **Real-time updates**: Statistics update immediately after each AI interaction
+- **Real-time idle detection**: Proactively notifies GNOME extension when session becomes idle (15+ minutes)
+- **Automatic idle flag management**: Sets/clears idle status automatically based on activity
 
 ## Installation
 
@@ -107,6 +109,30 @@ Total tokens = input + output + reasoning + cache (read + write)
 - Session stats reset to 0 when OpenCode restarts
 - The `lastActivity` timestamp updates with each AI interaction
 - The `startTime` is set when the session begins
+
+## Real-time Idle Detection
+
+The plugin actively monitors session activity and notifies the GNOME extension when the session becomes idle:
+
+- **Idle Threshold**: 15 minutes of inactivity
+- **Check Interval**: Monitors activity every 30 seconds
+- **Idle Flag**: Sets `isIdle: true` in stats file when threshold exceeded
+- **Automatic Reset**: Clears idle flag when activity resumes
+
+**Benefits:**
+- GNOME extension receives idle notifications within 1-2 seconds (vs up to 60 seconds with polling)
+- More accurate idle detection from the source of truth
+- Fallback polling still works for backward compatibility
+
+**Stats File Addition:**
+```json
+{
+  "session": {
+    "isIdle": true,              // Set when session becomes idle
+    "idleSince": 1704384900000   // Timestamp when idle started
+  }
+}
+```
 
 ## Daily Reset
 

@@ -71,7 +71,13 @@ Click "Refresh Statistics" in the menu to immediately fetch the latest data from
 
 ### Idle Notifications
 
-If your OpenCode session is idle for 15 minutes or more, you'll receive a desktop notification reminding you about the idle session.
+The extension monitors OpenCode activity and notifies you when your session has been idle:
+
+- **Real-time Detection**: When using the included OpenCode plugin, idle notifications appear within 1-2 seconds of reaching the idle threshold
+- **Fallback Polling**: Without the plugin, the extension checks every 60 seconds (still works, just slightly delayed)
+- **Configurable Threshold**: Default is 15 minutes, adjustable in preferences (1-120 minutes)
+
+The notification shows for ~5 seconds and can be manually closed. It appears only once per idle period to avoid spam.
 
 ## Data Storage
 
