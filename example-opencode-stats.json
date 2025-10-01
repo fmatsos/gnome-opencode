@@ -6,7 +6,8 @@
       "claude-3-opus": 500
     },
     "lastActivity": 1704384000000,
-    "startTime": 1704380400000
+    "startTime": 1704380400000,
+    "isIdle": false
   },
   "daily": {
     "totalTokens": 5000,
