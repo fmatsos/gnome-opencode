@@ -42,7 +42,7 @@ To enable the plugin for all OpenCode sessions:
 
 ## How It Works
 
-The plugin uses OpenCode's `chat.message` hook to intercept assistant messages and extract token usage information:
+The plugin uses OpenCode's `chat.message` hook to intercept assistant messages and extract token usage information. It uses Bun's native APIs for file operations:
 
 ```typescript
 "chat.message": async (input, output) => {
@@ -51,7 +51,7 @@ The plugin uses OpenCode's `chat.message` hook to intercept assistant messages a
     const tokens = message.tokens;
     // Track input, output, reasoning, and cache tokens
     // Update session, daily, and total statistics
-    // Save to ~/.local/share/opencode/stats.json
+    // Save to ~/.local/share/opencode/stats.json using Bun.write()
   }
 }
 ```
@@ -116,6 +116,7 @@ Total tokens = input + output + reasoning + cache (read + write)
 
 ## Compatibility
 
+- **Runtime**: Requires Bun (OpenCode's runtime)
 - **OpenCode**: Works with OpenCode versions that support plugins
 - **AI Models**: Tracks all AI models supported by OpenCode
 - **Operating Systems**: Linux, macOS (Windows users should adjust the stats file path)

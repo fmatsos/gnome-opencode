@@ -106,7 +106,14 @@ const UPDATE_INTERVAL_SECONDS = 60;
 
 This extension is designed to work with [OpenCode](https://github.com/sst/opencode), an open-source AI coding agent. OpenCode tracks token usage across various AI models and providers.
 
-**This repository includes an OpenCode plugin** (`.opencode/plugin/gnome-stats-exporter.ts`) that automatically exports token usage statistics for the GNOME extension. See [.opencode/plugin/README.md](.opencode/plugin/README.md) for setup instructions.
+**This repository includes an OpenCode plugin** (`.opencode/plugin/gnome-stats-exporter.ts`) that automatically exports token usage statistics for the GNOME extension. 
+
+To install the plugin:
+```bash
+./install-opencode-plugin.sh
+```
+
+Or see [.opencode/plugin/README.md](.opencode/plugin/README.md) for manual setup instructions.
 
 ### Expected OpenCode Stats Format
 

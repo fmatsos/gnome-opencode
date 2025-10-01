@@ -20,6 +20,6 @@
     "@opencode-ai/plugin": "*"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0"
+    "@types/bun": "latest"
   }
 }
