@@ -24,6 +24,8 @@ interface Statistics {
     tokensByModel: Record<string, number>;
     lastActivity: number;
     startTime: number;
+    isIdle?: boolean;
+    idleSince?: number;
   };
   daily: {
     totalTokens: number;
@@ -59,6 +61,7 @@ export const GnomeStatsExporter: Plugin = async ({ client, project, directory, w
         tokensByModel: {},
         lastActivity: Date.now(),
         startTime: Date.now(),
+        isIdle: false,
       };
       
       // Check if we need to reset daily stats
@@ -80,6 +83,34 @@ export const GnomeStatsExporter: Plugin = async ({ client, project, directory, w
 
   // Save initial stats
   await saveStats(stats, statsFile);
+
+  // Idle detection configuration (default 15 minutes)
+  const IDLE_THRESHOLD_MS = 15 * 60 * 1000; // 15 minutes in milliseconds
+  const IDLE_CHECK_INTERVAL_MS = 30 * 1000; // Check every 30 seconds
+
+  // Set up idle detection timer
+  const idleCheckTimer = setInterval(async () => {
+    const now = Date.now();
+    const idleTime = now - stats.session.lastActivity;
+    const wasIdle = stats.session.isIdle;
+    
+    if (idleTime >= IDLE_THRESHOLD_MS && stats.session.totalTokens > 0) {
+      // Session is idle
+      if (!wasIdle) {
+        // Just became idle - set flag and timestamp
+        stats.session.isIdle = true;
+        stats.session.idleSince = now;
+        await saveStats(stats, statsFile);
+        console.log(`[GNOME Stats Exporter] Session became idle after ${Math.floor(idleTime / 60000)} minutes`);
+      }
+    } else if (wasIdle) {
+      // Session is no longer idle
+      stats.session.isIdle = false;
+      delete stats.session.idleSince;
+      await saveStats(stats, statsFile);
+      console.log(`[GNOME Stats Exporter] Session is active again`);
+    }
+  }, IDLE_CHECK_INTERVAL_MS);
 
   return {
     "chat.message": async (input, output) => {
@@ -105,6 +136,12 @@ export const GnomeStatsExporter: Plugin = async ({ client, project, directory, w
             stats.session.tokensByModel[model] = 
               (stats.session.tokensByModel[model] || 0) + totalTokens;
             stats.session.lastActivity = Date.now();
+            
+            // Clear idle flag when there's activity
+            if (stats.session.isIdle) {
+              stats.session.isIdle = false;
+              delete stats.session.idleSince;
+            }
             
             // Update daily stats
             const today = getTodayString();
@@ -145,6 +182,7 @@ function createDefaultStats(): Statistics {
       tokensByModel: {},
       lastActivity: Date.now(),
       startTime: Date.now(),
+      isIdle: false,
     },
     daily: {
       totalTokens: 0,

@@ -21,10 +21,17 @@ class OpencodeIndicator extends PanelMenu.Button {
         this._extension = extension;
         this._settings = extension.getSettings();
         this._idleNotificationShown = false;
-        this._dataManager = new DataManager(extension, () => {
-            // Callback when data is updated from file monitor
-            this._updateDisplay();
-        });
+        this._dataManager = new DataManager(
+            extension,
+            () => {
+                // Callback when data is updated from file monitor
+                this._updateDisplay();
+            },
+            (idleMinutes) => {
+                // Callback when OpenCode plugin detects idle state (real-time)
+                this._showIdleNotification(idleMinutes);
+            }
+        );
         
         // Create icon
         let icon = new St.Icon({
@@ -186,7 +193,21 @@ class OpencodeIndicator extends PanelMenu.Button {
         Main.notify(`${type.charAt(0).toUpperCase() + type.slice(1)} Breakdown`, message);
     }
     
+    _showIdleNotification(idleMinutes) {
+        // Show idle notification (called by real-time detection or fallback polling)
+        // Notification will show for ~5 seconds and can be manually closed by user
+        if (!this._idleNotificationShown) {
+            Main.notify(
+                'OpenCode Session Idle',
+                `Your OpenCode session has been idle for ${Math.floor(idleMinutes)} minutes`
+            );
+            this._idleNotificationShown = true;
+        }
+    }
+    
     _checkIdleSession() {
+        // Fallback idle detection (polling-based)
+        // This runs when real-time detection from OpenCode plugin is not available
         let stats = this._dataManager.getStatistics();
         let lastActivityTime = stats.session.lastActivity;
         
@@ -197,18 +218,10 @@ class OpencodeIndicator extends PanelMenu.Button {
         let now = Date.now();
         let idleMinutes = (now - lastActivityTime) / (1000 * 60);
         
-        // Show idle notification if session has been idle for the threshold duration
-        // Notification will show for ~5 seconds and can be manually closed by user
         const idleThreshold = this._settings.get_int('idle-threshold-minutes');
         if (idleMinutes >= idleThreshold && stats.session.tokens > 0) {
-            // Only show notification once per idle period to avoid spam
-            if (!this._idleNotificationShown) {
-                Main.notify(
-                    'OpenCode Session Idle',
-                    `Your OpenCode session has been idle for ${Math.floor(idleMinutes)} minutes`
-                );
-                this._idleNotificationShown = true;
-            }
+            // Show notification via fallback mechanism
+            this._showIdleNotification(idleMinutes);
         } else {
             // Reset flag when session becomes active again
             this._idleNotificationShown = false;
@@ -229,10 +242,11 @@ class OpencodeIndicator extends PanelMenu.Button {
 });
 
 class DataManager {
-    constructor(extension, updateCallback) {
+    constructor(extension, updateCallback, idleCallback) {
         this._extension = extension;
         this._settings = extension.getSettings();
         this._updateCallback = updateCallback;
+        this._idleCallback = idleCallback;
         this._lastUpdateTime = null;
         this._fileMonitor = null;
         
@@ -373,6 +387,20 @@ class DataManager {
             this._data.session.tokens = opencodeStats.session.totalTokens || 0;
             this._data.session.models = opencodeStats.session.tokensByModel || {};
             this._data.session.lastActivity = opencodeStats.session.lastActivity || Date.now();
+            
+            // Check for real-time idle notification from OpenCode plugin
+            if (opencodeStats.session.isIdle && !this._data.session.wasIdle) {
+                // OpenCode plugin detected idle state - trigger notification immediately
+                const idleSince = opencodeStats.session.idleSince || opencodeStats.session.lastActivity;
+                const idleMinutes = Math.floor((Date.now() - idleSince) / (1000 * 60));
+                
+                if (this._idleCallback && opencodeStats.session.totalTokens > 0) {
+                    this._idleCallback(idleMinutes);
+                }
+            }
+            
+            // Track idle state to detect transitions
+            this._data.session.wasIdle = opencodeStats.session.isIdle || false;
         }
         
         // Update daily data
