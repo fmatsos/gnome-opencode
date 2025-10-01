@@ -27,6 +27,11 @@ gnome-opencode/
 │   ├── uninstall.sh          (1.5 KB) - Automated removal
 │   └── package.sh            (1.1 KB) - Create distribution package
 │
+├── OpenCode Plugin (NEW!)
+│   ├── .opencode/plugin/gnome-stats-exporter.ts (5.2 KB) - Token tracking plugin
+│   ├── .opencode/plugin/package.json - Plugin metadata
+│   └── .opencode/plugin/README.md (6.5 KB) - Plugin documentation
+│
 ├── Development & Testing
 │   ├── test-data-generator.sh (2.2 KB) - Generate mock statistics
 │   ├── example-opencode-stats.json - Example data format
@@ -65,10 +70,12 @@ gnome-opencode/
 - ✅ Persistent data storage (JSON)
 
 ### Integration
+- ✅ OpenCode plugin for automatic stats export
 - ✅ OpenCode stats file reading
 - ✅ Data synchronization
 - ✅ Date-based daily reset
 - ✅ Model name normalization
+- ✅ Token usage tracking (input, output, reasoning, cache)
 
 ### User Experience
 - ✅ Clean, intuitive interface
@@ -146,6 +153,10 @@ The extension automatically tracks any AI model, including:
 2. **Manual**: Copy files to extensions directory
 3. **Package**: Create zip with \`./package.sh\`, install via Extensions app
 4. **Future**: GNOME Extensions website (pending submission)
+
+### OpenCode Plugin Installation
+1. **Project-level**: Plugin included in \`.opencode/plugin/\` directory
+2. **Global**: Copy to \`~/.config/opencode/plugin/\` for all sessions
 
 ### Compatibility
 - GNOME Shell: 42, 43, 44, 45, 46
