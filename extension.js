@@ -13,16 +13,13 @@ import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 
-const IDLE_THRESHOLD_MINUTES = 15;
-const UPDATE_INTERVAL_SECONDS = 60;
-const FILE_MONITOR_ENABLED = true;
-
 const OpencodeIndicator = GObject.registerClass(
 class OpencodeIndicator extends PanelMenu.Button {
     _init(extension) {
         super._init(0.0, 'OpenCode Statistics');
         
         this._extension = extension;
+        this._settings = extension.getSettings();
         this._idleNotificationShown = false;
         this._dataManager = new DataManager(extension, () => {
             // Callback when data is updated from file monitor
@@ -40,9 +37,10 @@ class OpencodeIndicator extends PanelMenu.Button {
         this._buildMenu();
         
         // Start monitoring
+        const updateInterval = this._settings.get_int('update-interval-seconds');
         this._idleCheckerId = GLib.timeout_add_seconds(
             GLib.PRIORITY_DEFAULT,
-            UPDATE_INTERVAL_SECONDS,
+            updateInterval,
             () => {
                 this._checkIdleSession();
                 this._updateDisplay();
@@ -201,7 +199,8 @@ class OpencodeIndicator extends PanelMenu.Button {
         
         // Show idle notification if session has been idle for the threshold duration
         // Notification will show for ~5 seconds and can be manually closed by user
-        if (idleMinutes >= IDLE_THRESHOLD_MINUTES && stats.session.tokens > 0) {
+        const idleThreshold = this._settings.get_int('idle-threshold-minutes');
+        if (idleMinutes >= idleThreshold && stats.session.tokens > 0) {
             // Only show notification once per idle period to avoid spam
             if (!this._idleNotificationShown) {
                 Main.notify(
@@ -232,6 +231,7 @@ class OpencodeIndicator extends PanelMenu.Button {
 class DataManager {
     constructor(extension, updateCallback) {
         this._extension = extension;
+        this._settings = extension.getSettings();
         this._updateCallback = updateCallback;
         this._lastUpdateTime = null;
         this._fileMonitor = null;
@@ -257,7 +257,8 @@ class DataManager {
         this._fetchFromOpencode();
         
         // Set up file monitor for real-time updates
-        if (FILE_MONITOR_ENABLED) {
+        const fileMonitorEnabled = this._settings.get_boolean('file-monitor-enabled');
+        if (fileMonitorEnabled) {
             this._setupFileMonitor();
         }
     }
