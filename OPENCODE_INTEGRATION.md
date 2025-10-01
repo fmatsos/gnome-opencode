@@ -77,30 +77,47 @@ The extension expects a JSON file with the following structure:
 
 ## Integration Options
 
-### Option 1: OpenCode Plugin/Extension
+### Option 1: OpenCode Plugin/Extension (RECOMMENDED)
 
-Create an OpenCode plugin that tracks usage and writes to the stats file:
+**This repository includes a ready-to-use OpenCode plugin!**
+
+The `gnome-stats-exporter` plugin is located in `.opencode/plugin/` and automatically tracks token usage and writes to the stats file. To use it:
+
+**Project-level installation:**
+```bash
+# The plugin is already in this repository
+# Just use OpenCode in this project directory
+```
+
+**Global installation:**
+```bash
+# Copy to your global OpenCode config
+mkdir -p ~/.config/opencode/plugin
+cp .opencode/plugin/gnome-stats-exporter.ts ~/.config/opencode/plugin/
+```
+
+The plugin tracks token usage using the `chat.message` hook:
 
 ```typescript
-// Example OpenCode plugin structure
-import { Plugin } from '@opencode-ai/sdk';
+// Simplified example from .opencode/plugin/gnome-stats-exporter.ts
+import type { Plugin } from "@opencode-ai/plugin";
 
-export const statsPlugin: Plugin = {
-  name: 'gnome-stats-exporter',
-  
-  async onMessage(context) {
-    // Track token usage
-    const stats = getOrCreateStats();
-    stats.session.totalTokens += context.usage.tokens;
-    stats.session.tokensByModel[context.model] = 
-      (stats.session.tokensByModel[context.model] || 0) + context.usage.tokens;
-    stats.session.lastActivity = Date.now();
-    
-    // Save to file
-    await saveStats(stats);
-  }
+export const GnomeStatsExporter: Plugin = async ({ client, project, directory, worktree, $ }) => {
+  return {
+    "chat.message": async (input, output) => {
+      const message = output.message;
+      if (message.role === "assistant") {
+        const tokens = message.tokens;
+        // Track input, output, reasoning, and cache tokens
+        // Update session, daily, and total statistics
+        // Save to ~/.local/share/opencode/stats.json
+      }
+    },
+  };
 };
 ```
+
+See [.opencode/plugin/README.md](.opencode/plugin/README.md) for full documentation.
 
 ### Option 2: External Monitor Script
 

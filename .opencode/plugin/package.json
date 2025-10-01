@@ -1,0 +1,25 @@
+{
+  "name": "gnome-stats-exporter",
+  "version": "1.0.0",
+  "description": "OpenCode plugin to export token usage statistics for GNOME Shell extension",
+  "type": "module",
+  "main": "gnome-stats-exporter.ts",
+  "scripts": {
+    "test": "echo \"No tests configured\""
+  },
+  "keywords": [
+    "opencode",
+    "plugin",
+    "gnome",
+    "statistics",
+    "token-tracking"
+  ],
+  "author": "fmatsos",
+  "license": "GPL-3.0-or-later",
+  "peerDependencies": {
+    "@opencode-ai/plugin": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0"
+  }
+}
