@@ -78,6 +78,16 @@ Then restart GNOME Shell.
 
 Look in your GNOME Shell top bar, usually on the right side near system icons. It's a terminal icon (📟).
 
+### How do I configure the extension settings?
+
+Open the preferences UI:
+1. Open **Extensions** app (or run `gnome-extensions prefs opencode-stats@fmatsos.github.com`)
+2. Click ⚙️ next to **OpenCode Statistics**
+3. Configure idle threshold, polling interval, and file monitoring
+4. Reload extension (disable/enable) to apply changes
+
+All timing settings are now configurable through the UI - no need to edit code!
+
 ### What does each statistic mean?
 
 - **Session**: Tokens used since OpenCode started running
@@ -97,15 +107,15 @@ The extension uses **real-time file monitoring** and updates **immediately** whe
 
 ### Can I change the update interval?
 
-The 60-second interval is just a fallback. Real-time updates happen instantly via file monitoring. To adjust the fallback interval, edit `extension.js`:
-```javascript
-const UPDATE_INTERVAL_SECONDS = 60;  // Fallback polling interval
-```
+Yes! Use the preferences UI to configure timing settings:
 
-To disable file monitoring and use only polling:
-```javascript
-const FILE_MONITOR_ENABLED = false;
-```
+1. Open **Extensions** app
+2. Click ⚙️ next to **OpenCode Statistics**
+3. Adjust **Polling Interval** (10-600 seconds, default: 60)
+4. Toggle **File Monitoring** on/off
+5. Reload extension to apply changes
+
+The polling interval is a fallback - real-time file monitoring provides instant updates when enabled.
 
 ### What does the "Last update" label show?
 
