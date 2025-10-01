@@ -7,9 +7,6 @@
 // statistics to a file that the GNOME OpenCode Statistics Extension can read.
 
 import type { Plugin } from "@opencode-ai/plugin";
-import * as fs from "fs";
-import * as path from "path";
-import * as os from "os";
 
 interface TokenUsage {
   input: number;
@@ -41,19 +38,19 @@ interface Statistics {
 }
 
 export const GnomeStatsExporter: Plugin = async ({ client, project, directory, worktree, $ }) => {
-  const statsDir = path.join(os.homedir(), ".local", "share", "opencode");
-  const statsFile = path.join(statsDir, "stats.json");
+  const homeDir = Bun.env.HOME || "~";
+  const statsDir = `${homeDir}/.local/share/opencode`;
+  const statsFile = `${statsDir}/stats.json`;
 
   // Ensure the stats directory exists
-  if (!fs.existsSync(statsDir)) {
-    fs.mkdirSync(statsDir, { recursive: true });
-  }
+  await $`mkdir -p ${statsDir}`.quiet();
 
   // Load or initialize statistics
   let stats: Statistics;
-  if (fs.existsSync(statsFile)) {
+  const file = Bun.file(statsFile);
+  if (await file.exists()) {
     try {
-      const data = fs.readFileSync(statsFile, "utf-8");
+      const data = await file.text();
       stats = JSON.parse(data);
       
       // Reset session on plugin load (new OpenCode session)
@@ -82,7 +79,7 @@ export const GnomeStatsExporter: Plugin = async ({ client, project, directory, w
   }
 
   // Save initial stats
-  saveStats(stats, statsFile);
+  await saveStats(stats, statsFile);
 
   return {
     "chat.message": async (input, output) => {
@@ -129,7 +126,7 @@ export const GnomeStatsExporter: Plugin = async ({ client, project, directory, w
               (stats.total.tokensByModel[model] || 0) + totalTokens;
             
             // Save updated stats
-            saveStats(stats, statsFile);
+            await saveStats(stats, statsFile);
             
             console.log(`[GNOME Stats Exporter] Tracked ${totalTokens} tokens for model ${model}`);
           }
@@ -170,9 +167,9 @@ function getTodayString(): string {
   return `${year}-${month}-${day}`;
 }
 
-function saveStats(stats: Statistics, filePath: string): void {
+async function saveStats(stats: Statistics, filePath: string): Promise<void> {
   try {
-    fs.writeFileSync(filePath, JSON.stringify(stats, null, 2), "utf-8");
+    await Bun.write(filePath, JSON.stringify(stats, null, 2));
   } catch (error) {
     console.error("[GNOME Stats Exporter] Error saving stats:", error);
   }
