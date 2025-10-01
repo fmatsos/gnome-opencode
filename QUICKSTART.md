@@ -109,10 +109,28 @@ journalctl -f -o cat /usr/bin/gnome-shell | grep opencode
 
 ## Next Steps
 
+### Set Up OpenCode Plugin (Recommended)
+
+For real OpenCode integration, install the included plugin:
+
+**Global installation (works for all OpenCode sessions):**
+```bash
+mkdir -p ~/.config/opencode/plugin
+cp .opencode/plugin/gnome-stats-exporter.ts ~/.config/opencode/plugin/
+```
+
+**Project-level installation:**
+The plugin is already in `.opencode/plugin/` - just use OpenCode in this directory!
+
+See [.opencode/plugin/README.md](.opencode/plugin/README.md) for details.
+
+### More Resources
+
 1. **Read the full README**: `cat README.md` or view on GitHub
-2. **Set up OpenCode integration**: See `OPENCODE_INTEGRATION.md`
-3. **Customize settings**: Edit `extension.js` (update intervals, thresholds)
-4. **Report issues**: https://github.com/fmatsos/gnome-opencode/issues
+2. **OpenCode plugin setup**: See `.opencode/plugin/README.md`
+3. **Integration details**: See `OPENCODE_INTEGRATION.md`
+4. **Customize settings**: Edit `extension.js` (update intervals, thresholds)
+5. **Report issues**: https://github.com/fmatsos/gnome-opencode/issues
 
 ## Uninstallation
 
