@@ -93,14 +93,29 @@ Tokens are units of text that AI models process. Generally:
 
 ### How often does the extension update?
 
-Automatically every 60 seconds. You can also manually refresh by clicking "Refresh Statistics" in the menu.
+The extension uses **real-time file monitoring** and updates **immediately** when OpenCode processes tokens. There's also a 60-second polling fallback for reliability. You can manually refresh by clicking "Refresh Statistics" in the menu.
 
 ### Can I change the update interval?
 
-Yes, edit `extension.js` and modify:
+The 60-second interval is just a fallback. Real-time updates happen instantly via file monitoring. To adjust the fallback interval, edit `extension.js`:
 ```javascript
-const UPDATE_INTERVAL_SECONDS = 60;  // Change to desired value
+const UPDATE_INTERVAL_SECONDS = 60;  // Fallback polling interval
 ```
+
+To disable file monitoring and use only polling:
+```javascript
+const FILE_MONITOR_ENABLED = false;
+```
+
+### What does the "Last update" label show?
+
+The "Last update" label displays when the statistics were last refreshed from OpenCode. It shows:
+- "Just now" - Updated within the last minute
+- "X minutes ago" - Updated recently
+- "X hours ago" - Updated within the last 24 hours
+- Exact date/time - For older updates
+
+This helps you know if the extension is receiving data from OpenCode in real-time.
 
 ### What's the "View Details" button do?
 

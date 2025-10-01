@@ -155,6 +155,7 @@ gnome-opencode/
    - File I/O operations
    - File existence checks
    - Directory creation
+   - File monitoring (real-time updates)
 
 4. **GLib** (`gi://GLib`)
    - Timer scheduling
@@ -184,7 +185,8 @@ gnome-opencode/
 The extension integrates with OpenCode through:
 - **File-based**: Reads `~/.local/share/opencode/stats.json`
 - **Format**: JSON with session, daily, and total statistics
-- **Polling**: Checks for updates every 60 seconds
+- **Real-time monitoring**: Uses Gio.FileMonitor to detect file changes instantly
+- **Fallback polling**: Checks for updates every 60 seconds as backup
 
 ## State Management
 

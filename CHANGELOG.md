@@ -5,6 +5,19 @@ All notable changes to the GNOME OpenCode Statistics Extension will be documente
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- Real-time file monitoring using Gio.FileMonitor for instant updates when OpenCode processes tokens
+- "Last update" label in popup menu showing when statistics were last refreshed
+- Automatic detection of stats file changes with immediate UI updates
+- Proper file monitor cleanup on extension disable
+
+### Changed
+- Update mechanism now uses file monitoring with 60-second polling as fallback (previously polling-only)
+- DataManager now accepts callback for real-time UI updates
+- Improved responsiveness - no need to wait up to 60 seconds for updates
+
 ## [1.0.0] - 2024-01-04
 
 ### Added
