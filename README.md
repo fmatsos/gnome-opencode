@@ -10,7 +10,8 @@ A GNOME Shell extension that displays usage statistics for [OpenCode](https://gi
 - **Cumulative Statistics**: Monitor total tokens used since installation
 - **Model Breakdown**: Detailed view of token usage per AI model
 - **Idle Session Warnings**: Get notified when your OpenCode session has been idle for 15+ minutes
-- **Automatic Updates**: Statistics refresh every minute automatically
+- **Real-time Updates**: Statistics update immediately when OpenCode processes tokens (with 60-second polling fallback)
+- **Last Update Indicator**: Shows when statistics were last refreshed
 - **Persistent Storage**: All data stored in JSON format for reliability
 
 ## Requirements
@@ -95,11 +96,18 @@ The default idle threshold is 15 minutes. To change this, edit `extension.js` an
 const IDLE_THRESHOLD_MINUTES = 15;
 ```
 
-### Update Interval
+### Update Mechanism
 
-Statistics refresh every 60 seconds by default. To change this, edit:
+The extension uses **real-time file monitoring** to detect changes to OpenCode's statistics file. When OpenCode processes tokens, the extension updates **immediately** without waiting for a polling interval.
+
+A 60-second polling fallback ensures updates even if file monitoring fails. To adjust the fallback interval:
 ```javascript
-const UPDATE_INTERVAL_SECONDS = 60;
+const UPDATE_INTERVAL_SECONDS = 60;  // Fallback polling interval
+```
+
+To disable real-time file monitoring and use only polling:
+```javascript
+const FILE_MONITOR_ENABLED = false;
 ```
 
 ## OpenCode Integration
