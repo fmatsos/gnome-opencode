@@ -96,6 +96,85 @@ export default class OpencodeStatsPreferences extends ExtensionPreferences {
         );
         monitoringGroup.add(realtimeIdleRow);
         
+        // Budget Settings Group
+        const budgetGroup = new Adw.PreferencesGroup({
+            title: _('Budget Settings'),
+            description: _('Set spending limits and alerts'),
+        });
+        page.add(budgetGroup);
+        
+        // Daily Budget Setting
+        const dailyBudgetRow = new Adw.SpinRow({
+            title: _('Daily Budget (USD)'),
+            subtitle: _('Maximum daily spending (0 = no limit)'),
+            adjustment: new Gtk.Adjustment({
+                lower: 0,
+                upper: 1000,
+                step_increment: 1,
+                page_increment: 10,
+            }),
+            digits: 2,
+        });
+        settings.bind(
+            'daily-budget-usd',
+            dailyBudgetRow,
+            'value',
+            Gio.SettingsBindFlags.DEFAULT
+        );
+        budgetGroup.add(dailyBudgetRow);
+        
+        // Monthly Budget Setting
+        const monthlyBudgetRow = new Adw.SpinRow({
+            title: _('Monthly Budget (USD)'),
+            subtitle: _('Maximum monthly spending (0 = no limit)'),
+            adjustment: new Gtk.Adjustment({
+                lower: 0,
+                upper: 10000,
+                step_increment: 10,
+                page_increment: 100,
+            }),
+            digits: 2,
+        });
+        settings.bind(
+            'monthly-budget-usd',
+            monthlyBudgetRow,
+            'value',
+            Gio.SettingsBindFlags.DEFAULT
+        );
+        budgetGroup.add(monthlyBudgetRow);
+        
+        // Alert Threshold Setting
+        const thresholdRow = new Adw.SpinRow({
+            title: _('Alert Threshold (%)'),
+            subtitle: _('Show alert when reaching this percentage'),
+            adjustment: new Gtk.Adjustment({
+                lower: 50,
+                upper: 100,
+                step_increment: 5,
+                page_increment: 10,
+            }),
+        });
+        settings.bind(
+            'budget-alert-threshold',
+            thresholdRow,
+            'value',
+            Gio.SettingsBindFlags.DEFAULT
+        );
+        budgetGroup.add(thresholdRow);
+        
+        // Show Cost Toggle
+        const showCostRow = new Adw.SwitchRow({
+            title: _('Show Costs in Menu'),
+            subtitle: _('Display cost alongside token counts'),
+        });
+        settings.bind(
+            'show-cost-in-panel',
+            showCostRow,
+            'active',
+            Gio.SettingsBindFlags.DEFAULT
+        );
+        budgetGroup.add(showCostRow);
+        
         // Info text
         const infoGroup = new Adw.PreferencesGroup({
             description: _('Note: Changes take effect after reloading the extension (disable and re-enable)'),
