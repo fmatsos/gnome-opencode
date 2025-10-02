@@ -8,6 +8,9 @@ A GNOME Shell extension that displays usage statistics for [OpenCode](https://gi
 - **Session Statistics**: View token usage for your current OpenCode session
 - **Daily Statistics**: Track today's token consumption
 - **Cumulative Statistics**: Monitor total tokens used since installation
+- **Cost Tracking**: Display monetary costs alongside token counts (NEW)
+- **Budget Alerts**: Get notified when approaching daily spending limits (NEW)
+- **Per-Model Cost Breakdown**: See costs broken down by AI model (NEW)
 - **Model Breakdown**: Detailed view of token usage per AI model
 - **Idle Session Warnings**: Get notified when your OpenCode session has been idle for 15+ minutes
 - **Real-time Updates**: Statistics update immediately when OpenCode processes tokens (with 60-second polling fallback)
@@ -91,13 +94,36 @@ The extension will be available on [extensions.gnome.org](https://extensions.gno
 
 1. Click on the terminal icon in the GNOME top bar
 2. The popup menu shows:
-   - **Session**: Tokens used in the current OpenCode session
-   - **Today**: Total tokens used today
-   - **Total**: Cumulative tokens since installation
+   - **Session**: Tokens used in the current OpenCode session (with cost if enabled)
+   - **Today**: Total tokens used today (with cost if enabled)
+   - **Total**: Cumulative tokens since installation (with cost if enabled)
+
+### Cost Tracking
+
+The extension displays monetary costs alongside token counts when OpenCode provides cost information:
+
+- **Display Format**: Costs are shown in parentheses next to token counts
+  - Example: "Session: 15K tokens ($0.45)"
+  - Small costs (<$0.01) are shown in cents: "Session: 1.2K tokens ($0.75¢)"
+- **Per-Model Costs**: Click "View Details" buttons to see cost breakdown by AI model
+- **Toggle Display**: Enable/disable cost display in preferences (Settings → Cost Settings → Show Costs in Menu)
+
+### Budget Alerts
+
+Set spending limits and get notified when approaching your budget:
+
+1. Open extension preferences: `gnome-extensions prefs opencode-stats@fmatsos.github.com`
+2. Configure budget settings:
+   - **Daily Budget**: Maximum daily spending in USD (0 = no limit)
+   - **Monthly Budget**: Maximum monthly spending in USD (0 = no limit, planned for future)
+   - **Alert Threshold**: Show alert when reaching this percentage of budget (50-100%, default 80%)
+3. When you reach the threshold, a notification appears showing current spending vs. limit
+
+Example: With daily budget of $5.00 and threshold of 80%, you'll be alerted at $4.00.
 
 ### Model Breakdown
 
-Click on any "View Details" button to see token usage broken down by AI model (e.g., GPT-4, Claude, etc.).
+Click on any "View Details" button to see token and cost usage broken down by AI model (e.g., GPT-4, Claude, etc.).
 
 ### Manual Refresh
 
@@ -132,16 +158,27 @@ Note: The extension expects OpenCode to maintain its own statistics file. If thi
 
 ### Preferences
 
-All timing settings can be configured through the GNOME Extensions preferences UI:
+All settings can be configured through the GNOME Extensions preferences UI:
 
 1. Open **Extensions** app (or run `gnome-extensions prefs opencode-stats@fmatsos.github.com`)
 2. Find **OpenCode Statistics** extension
 3. Click the ⚙️ settings icon
 4. Configure:
+   
+   **Timing Settings:**
    - **Idle Threshold**: Minutes before showing idle notification (1-120, default: 15)
    - **Polling Interval**: Fallback check frequency in seconds (10-600, default: 60)
+   
+   **Real-time Monitoring:**
    - **File Monitoring**: Enable/disable real-time file updates (default: enabled)
    - **Real-time Idle Detection**: Use OpenCode events for instant idle notifications (default: enabled)
+   
+   **Budget Settings:**
+   - **Daily Budget (USD)**: Maximum daily spending limit (0 = no limit)
+   - **Monthly Budget (USD)**: Maximum monthly spending limit (0 = no limit)
+   - **Alert Threshold (%)**: Show alert when reaching this percentage of budget (50-100%, default: 80%)
+   - **Show Costs in Menu**: Display cost alongside token counts (default: enabled)
+
 5. Reload extension (disable/enable) to apply changes
 
 ### Update Mechanism
@@ -175,6 +212,11 @@ The extension expects OpenCode to provide statistics in the following format:
       "gpt-4": 1000,
       "claude-3": 500
     },
+    "totalCost": 0.045,
+    "costsByModel": {
+      "gpt-4": 0.030,
+      "claude-3": 0.015
+    },
     "lastActivity": 1234567890000
   },
   "daily": {
@@ -182,6 +224,11 @@ The extension expects OpenCode to provide statistics in the following format:
     "tokensByModel": {
       "gpt-4": 3000,
       "claude-3": 2000
+    },
+    "totalCost": 0.15,
+    "costsByModel": {
+      "gpt-4": 0.090,
+      "claude-3": 0.060
     }
   },
   "total": {
@@ -189,10 +236,17 @@ The extension expects OpenCode to provide statistics in the following format:
     "tokensByModel": {
       "gpt-4": 30000,
       "claude-3": 20000
+    },
+    "totalCost": 1.50,
+    "costsByModel": {
+      "gpt-4": 0.90,
+      "claude-3": 0.60
     }
   }
 }
 ```
+
+**Note**: Cost fields (`totalCost`, `costsByModel`) are optional. If not provided by OpenCode, the extension will display token counts without cost information. This ensures backward compatibility with older versions of OpenCode or plugins that don't track costs.
 
 ## Development
 
