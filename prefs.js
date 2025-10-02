@@ -83,6 +83,19 @@ export default class OpencodeStatsPreferences extends ExtensionPreferences {
         );
         monitoringGroup.add(fileMonitorRow);
         
+        // Real-time Idle Detection Toggle
+        const realtimeIdleRow = new Adw.SwitchRow({
+            title: _('Enable Real-time Idle Detection'),
+            subtitle: _('Use OpenCode events for instant idle notifications (vs polling)'),
+        });
+        settings.bind(
+            'realtime-idle-enabled',
+            realtimeIdleRow,
+            'active',
+            Gio.SettingsBindFlags.DEFAULT
+        );
+        monitoringGroup.add(realtimeIdleRow);
+        
         // Info text
         const infoGroup = new Adw.PreferencesGroup({
             description: _('Note: Changes take effect after reloading the extension (disable and re-enable)'),

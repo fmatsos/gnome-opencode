@@ -22,5 +22,11 @@
       <description>Enable real-time file monitoring for instant updates when OpenCode processes tokens</description>
     </key>
     
+    <key name="realtime-idle-enabled" type="b">
+      <default>true</default>
+      <summary>Enable Real-time Idle Detection</summary>
+      <description>Enable real-time idle detection from OpenCode events (recommended for instant idle notifications)</description>
+    </key>
+    
   </schema>
 </schemalist>
