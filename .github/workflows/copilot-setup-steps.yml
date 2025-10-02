@@ -27,11 +27,6 @@ jobs:
           curl -LsSf https://astral.sh/uv/install.sh | sh
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      - name: Install uvx
-        run: |
-          source $HOME/.local/bin/env
-          uv tool install uvx || echo "uvx is included with uv"
-
       - name: Serena MCP
         run: |
           uvx --from git+https://github.com/oraios/serena serena start-mcp-server
