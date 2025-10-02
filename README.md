@@ -73,9 +73,10 @@ Click "Refresh Statistics" in the menu to immediately fetch the latest data from
 
 The extension monitors OpenCode activity and notifies you when your session has been idle:
 
-- **Real-time Detection**: When using the included OpenCode plugin, idle notifications appear within 1-2 seconds of reaching the idle threshold
-- **Fallback Polling**: Without the plugin, the extension checks every 60 seconds (still works, just slightly delayed)
-- **Configurable Threshold**: Default is 15 minutes, adjustable in preferences (1-120 minutes)
+- **Real-time Detection**: Uses OpenCode's native `session.idle` event for instant notifications when the chat session finishes
+- **Event-driven**: OpenCode plugin catches the idle event and notifies the GNOME extension immediately (< 1 second)
+- **Fallback Polling**: If real-time detection is disabled, the extension checks every 60 seconds based on activity timestamps
+- **Configurable**: Both real-time detection and idle threshold (1-120 minutes, default: 15) can be configured in preferences
 
 The notification shows for ~5 seconds and can be manually closed. It appears only once per idle period to avoid spam.
 
@@ -105,7 +106,8 @@ All timing settings can be configured through the GNOME Extensions preferences U
 4. Configure:
    - **Idle Threshold**: Minutes before showing idle notification (1-120, default: 15)
    - **Polling Interval**: Fallback check frequency in seconds (10-600, default: 60)
-   - **File Monitoring**: Enable/disable real-time updates (default: enabled)
+   - **File Monitoring**: Enable/disable real-time file updates (default: enabled)
+   - **Real-time Idle Detection**: Use OpenCode events for instant idle notifications (default: enabled)
 5. Reload extension (disable/enable) to apply changes
 
 ### Update Mechanism
