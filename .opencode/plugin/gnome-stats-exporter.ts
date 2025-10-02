@@ -84,26 +84,26 @@ export const GnomeStatsExporter: Plugin = async ({ client, project, directory, w
   // Save initial stats
   await saveStats(stats, statsFile);
 
-  // Idle detection configuration (default 15 minutes)
+  // Idle detection configuration (default 15 minutes) - fallback only
   const IDLE_THRESHOLD_MS = 15 * 60 * 1000; // 15 minutes in milliseconds
-  const IDLE_CHECK_INTERVAL_MS = 30 * 1000; // Check every 30 seconds
+  const IDLE_CHECK_INTERVAL_MS = 60 * 1000; // Check every 60 seconds (fallback)
 
-  // Set up idle detection timer
+  // Set up fallback idle detection timer (runs even with event-based detection)
   const idleCheckTimer = setInterval(async () => {
     const now = Date.now();
     const idleTime = now - stats.session.lastActivity;
     const wasIdle = stats.session.isIdle;
     
+    // Only use fallback if we haven't received real-time idle event
+    // This ensures idle notification even if event system fails
     if (idleTime >= IDLE_THRESHOLD_MS && stats.session.totalTokens > 0) {
-      // Session is idle
       if (!wasIdle) {
-        // Just became idle - set flag and timestamp
         stats.session.isIdle = true;
         stats.session.idleSince = now;
         await saveStats(stats, statsFile);
-        console.log(`[GNOME Stats Exporter] Session became idle after ${Math.floor(idleTime / 60000)} minutes`);
+        console.log(`[GNOME Stats Exporter] Session became idle (fallback detection) after ${Math.floor(idleTime / 60000)} minutes`);
       }
-    } else if (wasIdle) {
+    } else if (wasIdle && idleTime < IDLE_THRESHOLD_MS) {
       // Session is no longer idle
       stats.session.isIdle = false;
       delete stats.session.idleSince;
@@ -113,6 +113,25 @@ export const GnomeStatsExporter: Plugin = async ({ client, project, directory, w
   }, IDLE_CHECK_INTERVAL_MS);
 
   return {
+    // Real-time idle detection via OpenCode event
+    "event": async (event) => {
+      try {
+        // Listen for session.idle event from OpenCode
+        if (event.type === "session.idle") {
+          console.log(`[GNOME Stats Exporter] Received session.idle event from OpenCode`);
+          
+          // Mark session as idle immediately
+          if (!stats.session.isIdle && stats.session.totalTokens > 0) {
+            stats.session.isIdle = true;
+            stats.session.idleSince = Date.now();
+            await saveStats(stats, statsFile);
+            console.log(`[GNOME Stats Exporter] Session marked as idle (real-time event)`);
+          }
+        }
+      } catch (error) {
+        console.error("[GNOME Stats Exporter] Error processing event:", error);
+      }
+    },
     "chat.message": async (input, output) => {
       try {
         const message = output.message;

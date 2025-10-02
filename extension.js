@@ -389,13 +389,15 @@ class DataManager {
             this._data.session.lastActivity = opencodeStats.session.lastActivity || Date.now();
             
             // Check for real-time idle notification from OpenCode plugin
-            if (opencodeStats.session.isIdle && !this._data.session.wasIdle) {
+            const realtimeIdleEnabled = this._settings.get_boolean('realtime-idle-enabled');
+            if (realtimeIdleEnabled && opencodeStats.session.isIdle && !this._data.session.wasIdle) {
                 // OpenCode plugin detected idle state - trigger notification immediately
                 const idleSince = opencodeStats.session.idleSince || opencodeStats.session.lastActivity;
                 const idleMinutes = Math.floor((Date.now() - idleSince) / (1000 * 60));
                 
                 if (this._idleCallback && opencodeStats.session.totalTokens > 0) {
                     this._idleCallback(idleMinutes);
+                    log('[OpenCode Stats] Real-time idle notification triggered');
                 }
             }
             
