@@ -325,6 +325,22 @@ The GNOME extension reads the `~/.local/share/opencode/stats.json` file every 60
 
 GPL-3.0-or-later - Same as the GNOME OpenCode Statistics Extension
 
+## Development
+
+### For AI Coding Agents
+
+See [AGENTS.md](AGENTS.md) for detailed guidance on:
+- Deterministic development commands
+- Code structure and key concepts
+- Safe vs unsafe operations
+- Common development tasks with examples
+- Debugging checklist
+- Testing workflows
+
+### For Human Developers
+
+See the [docs/](docs/) directory for implementation details and debugging guides.
+
 ## Links
 
 - [GNOME OpenCode Statistics Extension](https://github.com/fmatsos/gnome-opencode)
