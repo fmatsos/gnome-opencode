@@ -21,6 +21,7 @@ class OpencodeIndicator extends PanelMenu.Button {
         this._extension = extension;
         this._settings = extension.getSettings();
         this._idleNotificationShown = false;
+        this._dailyAlertShown = false;
         this._dataManager = new DataManager(
             extension,
             () => {
@@ -132,13 +133,16 @@ class OpencodeIndicator extends PanelMenu.Button {
         let stats = this._dataManager.getStatistics();
         
         // Update session stats
-        this._sessionLabel.label.text = `Session: ${this._formatTokens(stats.session.tokens)} tokens`;
+        this._sessionLabel.label.text = `Session: ${this._formatTokenCount(stats.session.tokens, stats.session.cost)}`;
         
         // Update daily stats
-        this._dailyLabel.label.text = `Today: ${this._formatTokens(stats.daily.tokens)} tokens`;
+        this._dailyLabel.label.text = `Today: ${this._formatTokenCount(stats.daily.tokens, stats.daily.cost)}`;
         
         // Update total stats
-        this._totalLabel.label.text = `Total: ${this._formatTokens(stats.total.tokens)} tokens`;
+        this._totalLabel.label.text = `Total: ${this._formatTokenCount(stats.total.tokens, stats.total.cost)}`;
+        
+        // Check budget alerts
+        this._checkBudgetAlerts();
         
         // Update last update time
         let lastUpdate = this._dataManager.getLastUpdateTime();
@@ -177,6 +181,23 @@ class OpencodeIndicator extends PanelMenu.Button {
         return tokens.toString();
     }
     
+    _formatCost(cost) {
+        if (cost === 0) {
+            return '';
+        }
+        if (cost < 0.01) {
+            return ` ($${(cost * 100).toFixed(2)}¢)`;
+        }
+        return ` ($${cost.toFixed(2)})`;
+    }
+    
+    _formatTokenCount(tokens, cost = 0) {
+        const showCost = this._settings.get_boolean('show-cost-in-panel');
+        const tokenStr = this._formatTokens(tokens);
+        const costStr = showCost ? this._formatCost(cost) : '';
+        return `${tokenStr} tokens${costStr}`;
+    }
+    
     _showModelBreakdown(type) {
         let stats = this._dataManager.getStatistics();
         let data = stats[type];
@@ -186,8 +207,13 @@ class OpencodeIndicator extends PanelMenu.Button {
             return;
         }
         
+        const showCost = this._settings.get_boolean('show-cost-in-panel');
         let message = Object.entries(data.models)
-            .map(([model, tokens]) => `${model}: ${this._formatTokens(tokens)} tokens`)
+            .map(([model, tokens]) => {
+                const cost = data.costModels && data.costModels[model] ? data.costModels[model] : 0;
+                const costStr = showCost && cost > 0 ? ` ($${cost.toFixed(4)})` : '';
+                return `${model}: ${this._formatTokens(tokens)} tokens${costStr}`;
+            })
             .join('\n');
         
         Main.notify(`${type.charAt(0).toUpperCase() + type.slice(1)} Breakdown`, message);
@@ -203,6 +229,33 @@ class OpencodeIndicator extends PanelMenu.Button {
             );
             this._idleNotificationShown = true;
         }
+    }
+    
+    _checkBudgetAlerts() {
+        const dailyBudget = this._settings.get_double('daily-budget-usd');
+        const alertThreshold = this._settings.get_int('budget-alert-threshold');
+        const stats = this._dataManager.getStatistics();
+        
+        // Daily budget check
+        if (dailyBudget > 0 && stats.daily.cost > 0) {
+            const dailyPercent = (stats.daily.cost / dailyBudget) * 100;
+            if (dailyPercent >= alertThreshold && !this._dailyAlertShown) {
+                this._showBudgetAlert('daily', dailyPercent, stats.daily.cost, dailyBudget);
+                this._dailyAlertShown = true;
+            } else if (dailyPercent < alertThreshold) {
+                // Reset alert flag when back under threshold
+                this._dailyAlertShown = false;
+            }
+        }
+        
+        // TODO: Monthly budget check (requires monthly aggregation)
+    }
+    
+    _showBudgetAlert(period, percent, current, limit) {
+        const title = period === 'daily' ? 'Daily Budget Alert' : 'Monthly Budget Alert';
+        const body = `You've used ${percent.toFixed(0)}% of your ${period} budget ($${current.toFixed(2)} of $${limit.toFixed(2)})`;
+        
+        Main.notify(title, body);
     }
     
     _checkIdleSession() {
@@ -314,17 +367,23 @@ class DataManager {
             session: {
                 tokens: 0,
                 models: {},
+                cost: 0,
+                costModels: {},
                 lastActivity: null,
                 startTime: Date.now()
             },
             daily: {
                 tokens: 0,
                 models: {},
+                cost: 0,
+                costModels: {},
                 date: this._getTodayString()
             },
             total: {
                 tokens: 0,
                 models: {},
+                cost: 0,
+                costModels: {},
                 installDate: Date.now()
             }
         };
@@ -358,6 +417,8 @@ class DataManager {
             this._data.daily = {
                 tokens: 0,
                 models: {},
+                cost: 0,
+                costModels: {},
                 date: today
             };
         }
@@ -386,6 +447,8 @@ class DataManager {
         if (opencodeStats.session) {
             this._data.session.tokens = opencodeStats.session.totalTokens || 0;
             this._data.session.models = opencodeStats.session.tokensByModel || {};
+            this._data.session.cost = opencodeStats.session.totalCost || 0;
+            this._data.session.costModels = opencodeStats.session.costsByModel || {};
             this._data.session.lastActivity = opencodeStats.session.lastActivity || Date.now();
             
             // Check for real-time idle notification from OpenCode plugin
@@ -409,12 +472,16 @@ class DataManager {
         if (opencodeStats.daily) {
             this._data.daily.tokens = opencodeStats.daily.totalTokens || 0;
             this._data.daily.models = opencodeStats.daily.tokensByModel || {};
+            this._data.daily.cost = opencodeStats.daily.totalCost || 0;
+            this._data.daily.costModels = opencodeStats.daily.costsByModel || {};
         }
         
         // Update total data
         if (opencodeStats.total) {
             this._data.total.tokens = opencodeStats.total.totalTokens || 0;
             this._data.total.models = opencodeStats.total.tokensByModel || {};
+            this._data.total.cost = opencodeStats.total.totalCost || 0;
+            this._data.total.costModels = opencodeStats.total.costsByModel || {};
         }
     }
     

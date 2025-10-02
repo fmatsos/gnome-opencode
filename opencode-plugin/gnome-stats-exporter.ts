@@ -43,6 +43,8 @@ interface Statistics {
   session: {
     totalTokens: number;
     tokensByModel: Record<string, number>;
+    totalCost: number;
+    costsByModel: Record<string, number>;
     lastActivity: number;
     startTime: number;
     isIdle?: boolean;
@@ -51,11 +53,15 @@ interface Statistics {
   daily: {
     totalTokens: number;
     tokensByModel: Record<string, number>;
+    totalCost: number;
+    costsByModel: Record<string, number>;
     date: string;
   };
   total: {
     totalTokens: number;
     tokensByModel: Record<string, number>;
+    totalCost: number;
+    costsByModel: Record<string, number>;
     installDate: number;
   };
 }
@@ -80,6 +86,8 @@ export const GnomeStatsExporter: Plugin = async ({ client, project, directory, w
       stats.session = {
         totalTokens: 0,
         tokensByModel: {},
+        totalCost: 0,
+        costsByModel: {},
         lastActivity: Date.now(),
         startTime: Date.now(),
         isIdle: false,
@@ -91,6 +99,8 @@ export const GnomeStatsExporter: Plugin = async ({ client, project, directory, w
         stats.daily = {
           totalTokens: 0,
           tokensByModel: {},
+          totalCost: 0,
+          costsByModel: {},
           date: today,
         };
       }
@@ -174,10 +184,16 @@ export const GnomeStatsExporter: Plugin = async ({ client, project, directory, w
                 (tokens.reasoning || 0) +
                 ((tokens.cache?.read || 0) + (tokens.cache?.write || 0));
               
+              // Get cost data from message (defaults to 0 for backward compatibility)
+              const cost = message.cost || 0;
+              
               // Update session stats
               stats.session.totalTokens += totalTokens;
               stats.session.tokensByModel[modelID] = 
                 (stats.session.tokensByModel[modelID] || 0) + totalTokens;
+              stats.session.totalCost += cost;
+              stats.session.costsByModel[modelID] = 
+                (stats.session.costsByModel[modelID] || 0) + cost;
               stats.session.lastActivity = Date.now();
               
               // Clear idle flag when there's activity
@@ -193,25 +209,33 @@ export const GnomeStatsExporter: Plugin = async ({ client, project, directory, w
                 stats.daily = {
                   totalTokens: 0,
                   tokensByModel: {},
+                  totalCost: 0,
+                  costsByModel: {},
                   date: today,
                 };
               }
               stats.daily.totalTokens += totalTokens;
               stats.daily.tokensByModel[modelID] = 
                 (stats.daily.tokensByModel[modelID] || 0) + totalTokens;
+              stats.daily.totalCost += cost;
+              stats.daily.costsByModel[modelID] = 
+                (stats.daily.costsByModel[modelID] || 0) + cost;
               
               // Update total stats
               stats.total.totalTokens += totalTokens;
               stats.total.tokensByModel[modelID] = 
                 (stats.total.tokensByModel[modelID] || 0) + totalTokens;
+              stats.total.totalCost += cost;
+              stats.total.costsByModel[modelID] = 
+                (stats.total.costsByModel[modelID] || 0) + cost;
               
               // Save updated stats
               await saveStats(stats, statsFile);
               
-              await debugLog("info", "Tracked tokens for model", { 
+              await debugLog("info", "Tracked tokens and cost for model", { 
                 totalTokens, 
                 modelID, 
-                cost: message.cost || 0 
+                cost 
               });
             }
           }
@@ -228,6 +252,8 @@ function createDefaultStats(): Statistics {
     session: {
       totalTokens: 0,
       tokensByModel: {},
+      totalCost: 0,
+      costsByModel: {},
       lastActivity: Date.now(),
       startTime: Date.now(),
       isIdle: false,
@@ -235,11 +261,15 @@ function createDefaultStats(): Statistics {
     daily: {
       totalTokens: 0,
       tokensByModel: {},
+      totalCost: 0,
+      costsByModel: {},
       date: getTodayString(),
     },
     total: {
       totalTokens: 0,
       tokensByModel: {},
+      totalCost: 0,
+      costsByModel: {},
       installDate: Date.now(),
     },
   };

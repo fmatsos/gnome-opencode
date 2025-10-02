@@ -28,5 +28,30 @@
       <description>Enable real-time idle detection from OpenCode events (recommended for instant idle notifications)</description>
     </key>
     
+    <key name="daily-budget-usd" type="d">
+      <default>0</default>
+      <summary>Daily budget in USD</summary>
+      <description>Maximum daily spending limit (0 = no limit)</description>
+    </key>
+    
+    <key name="monthly-budget-usd" type="d">
+      <default>0</default>
+      <summary>Monthly budget in USD</summary>
+      <description>Maximum monthly spending limit (0 = no limit)</description>
+    </key>
+    
+    <key name="budget-alert-threshold" type="i">
+      <default>80</default>
+      <range min="50" max="100"/>
+      <summary>Budget alert threshold percentage</summary>
+      <description>Show alert when reaching this percentage of budget</description>
+    </key>
+    
+    <key name="show-cost-in-panel" type="b">
+      <default>true</default>
+      <summary>Show cost in panel menu</summary>
+      <description>Display cost alongside token counts</description>
+    </key>
+    
   </schema>
 </schemalist>
