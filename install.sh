@@ -68,7 +68,5 @@ else
 fi
 
 echo "  2. Look for the terminal icon in your top bar"
-echo "  3. (Optional) Generate test data:"
-echo "     ./test-data-generator.sh"
 echo ""
 echo "For more information, see README.md"

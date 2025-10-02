@@ -44,19 +44,23 @@ To enable the plugin for all OpenCode sessions:
 
 ## How It Works
 
-The plugin uses OpenCode's `chat.message` hook to intercept assistant messages and extract token usage information. It uses Bun's native APIs for file operations:
+The plugin uses OpenCode's `event` hook to listen to `message.updated` events and extract token usage information from completed assistant messages. It uses Bun's native APIs for file operations:
 
 ```typescript
-"chat.message": async (input, output) => {
-  const message = output.message;
-  if (message.role === "assistant") {
-    const tokens = message.tokens;
-    // Track input, output, reasoning, and cache tokens
-    // Update session, daily, and total statistics
-    // Save to ~/.local/share/opencode/stats.json using Bun.write()
+"event": async ({ event }) => {
+  if (event.type === "message.updated") {
+    const message = event.info;
+    if (message.role === "assistant" && message.time?.completed) {
+      const tokens = message.tokens;
+      // Track input, output, reasoning, and cache tokens
+      // Update session, daily, and total statistics
+      // Save to ~/.local/share/opencode/stats.json using Bun.write()
+    }
   }
 }
 ```
+
+The plugin also shows a success toast notification when it loads to confirm it's active.
 
 ## Statistics File Format
 
@@ -173,13 +177,67 @@ To change the location, edit `gnome-stats-exporter.ts` and modify:
 const statsDir = path.join(os.homedir(), ".local", "share", "opencode");
 ```
 
+## Debug Logging
+
+By default, the plugin runs **silently** without producing any log messages in the OpenCode chat interface.
+
+### Enable Debug Mode
+
+To enable detailed debug logging (useful for troubleshooting):
+
+```bash
+# Enable debug logging
+export DEBUG_GNOME_STATS=1
+
+# Start OpenCode with debug logging enabled
+opencode
+```
+
+When enabled, the plugin writes detailed logs to:
+```
+~/.local/share/opencode/gnome-stats-exporter.log
+```
+
+**Log Levels:**
+- `INFO`: Token tracking events, idle state changes
+- `DEBUG`: Event processing details, message data inspection
+- `ERROR`: Plugin errors, file operation failures
+
+**View Debug Logs:**
+```bash
+# View the entire log file
+cat ~/.local/share/opencode/gnome-stats-exporter.log
+
+# Tail the log file in real-time
+tail -f ~/.local/share/opencode/gnome-stats-exporter.log
+
+# View only errors
+grep ERROR ~/.local/share/opencode/gnome-stats-exporter.log
+```
+
+**Disable Debug Mode:**
+```bash
+# Unset the environment variable
+unset DEBUG_GNOME_STATS
+
+# Or start OpenCode without the variable
+opencode
+```
+
+**Benefits:**
+- ✅ **Silent by default** - No chat pollution during normal use
+- ✅ **Opt-in debugging** - Enable only when troubleshooting
+- ✅ **Separate log file** - Doesn't interfere with OpenCode logs
+- ✅ **Detailed diagnostics** - Full event and message data when needed
+
 ## Troubleshooting
 
 ### Plugin Not Loading
 
-1. Check OpenCode logs for plugin errors:
+1. Enable debug logging to check for errors:
    ```bash
-   # Check OpenCode output for plugin loading messages
+   DEBUG_GNOME_STATS=1 opencode
+   tail -f ~/.local/share/opencode/gnome-stats-exporter.log
    ```
 
 2. Verify the plugin file location:
@@ -202,8 +260,11 @@ const statsDir = path.join(os.homedir(), ".local", "share", "opencode");
 
 ### Statistics Not Updating
 
-1. Ensure the plugin is loaded:
-   - Check OpenCode startup logs for plugin loading messages
+1. Enable debug logging to see if events are being received:
+   ```bash
+   DEBUG_GNOME_STATS=1 opencode
+   tail -f ~/.local/share/opencode/gnome-stats-exporter.log
+   ```
 
 2. Verify you're using OpenCode:
    - Statistics only update when you interact with AI models through OpenCode
@@ -211,6 +272,11 @@ const statsDir = path.join(os.homedir(), ".local", "share", "opencode");
 3. Check file timestamps:
    ```bash
    ls -la ~/.local/share/opencode/stats.json
+   ```
+
+4. Look for "Tracked tokens for model" messages in the debug log:
+   ```bash
+   grep "Tracked tokens" ~/.local/share/opencode/gnome-stats-exporter.log
    ```
 
 ## Development

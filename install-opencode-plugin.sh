@@ -10,7 +10,7 @@
 set -e
 
 PLUGIN_FILE="gnome-stats-exporter.ts"
-PLUGIN_DIR=".opencode/plugin"
+PLUGIN_DIR="opencode-plugin"
 GLOBAL_PLUGIN_DIR="$HOME/.config/opencode/plugin"
 
 echo "================================================"
@@ -39,13 +39,13 @@ case $choice in
     1)
         echo ""
         echo "Installing plugin globally to $GLOBAL_PLUGIN_DIR..."
-        
+
         # Create directory if it doesn't exist
         mkdir -p "$GLOBAL_PLUGIN_DIR"
-        
+
         # Copy plugin file
         cp "$PLUGIN_DIR/$PLUGIN_FILE" "$GLOBAL_PLUGIN_DIR/"
-        
+
         echo ""
         echo "✅ Plugin installed successfully!"
         echo ""
@@ -91,8 +91,8 @@ echo "   - Look for the terminal icon in your top bar"
 echo "   - Click to view token usage"
 echo ""
 echo "For more information, see:"
-echo "  - .opencode/plugin/README.md"
-echo "  - OPENCODE_INTEGRATION.md"
+echo "  - opencode-plugin/README.md"
+echo "  - docs/OPENCODE_INTEGRATION.md"
 echo ""
 echo "Enjoy tracking your OpenCode usage! 🚀"
 echo ""

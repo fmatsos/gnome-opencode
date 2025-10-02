@@ -35,6 +35,53 @@ echo "=== End Diagnostics ==="
 
 Save as `diagnose.sh`, make executable (`chmod +x`), and run.
 
+## Problem: Settings-Schema Error (FIXED in Latest Version)
+
+### Symptom
+Error when opening extension preferences: "Expected type string for argument 'schema_id' but got type undefined"
+
+### Cause
+The `metadata.json` file was missing the `settings-schema` property required by GNOME Shell 42+.
+
+### Solution
+
+**This is fixed in the latest version.** If you still encounter this error:
+
+1. **Update to latest version:**
+   ```bash
+   cd gnome-opencode
+   git pull
+   ./install.sh
+   ```
+
+2. **Manual fix** (if needed):
+   Edit `~/.local/share/gnome-shell/extensions/opencode-stats@fmatsos.github.com/metadata.json`
+   
+   Add this property:
+   ```json
+   {
+     "name": "OpenCode Statistics",
+     ...
+     "settings-schema": "org.gnome.shell.extensions.opencode-stats"
+   }
+   ```
+
+3. **Restart GNOME Shell:**
+   - **X11**: Alt+F2, type `r`, press Enter
+   - **Wayland**: Log out and log back in
+
+4. **Test preferences:**
+   ```bash
+   gnome-extensions prefs opencode-stats@fmatsos.github.com
+   ```
+
+### Technical Details
+The `getSettings()` method in `prefs.js` requires either:
+- A schema parameter passed explicitly, OR
+- A `settings-schema` property in `metadata.json`
+
+The extension now includes this property pointing to `org.gnome.shell.extensions.opencode-stats`.
+
 ## Problem: Extension Doesn't Appear
 
 ### Symptom
@@ -55,7 +102,7 @@ No terminal icon in the top bar after installation.
    ```bash
    ls -la ~/.local/share/gnome-shell/extensions/opencode-stats@fmatsos.github.com/
    ```
-   Should show: `extension.js`, `metadata.json`, `stylesheet.css`
+   Should show: `extension.js`, `prefs.js`, `metadata.json`, `stylesheet.css`, `schemas/`
 
 4. **Check for errors:**
    ```bash
@@ -191,23 +238,41 @@ Numbers never change even after using OpenCode.
 
 ### Solutions
 
-1. **Check update interval** (60 seconds by default)
+1. **Check file monitoring is enabled:**
+   ```bash
+   gnome-extensions prefs opencode-stats@fmatsos.github.com
+   ```
+   Verify "Enable File Monitoring" is turned on for real-time updates
 
-2. **Manually trigger update:**
-   Click "Refresh Statistics"
+2. **Check update interval** (60 seconds default for fallback polling)
 
-3. **Verify OpenCode is updating stats:**
+3. **Manually trigger update:**
+   Click "Refresh Statistics" in the extension menu
+
+4. **Verify OpenCode is updating stats:**
    ```bash
    watch -n 5 cat ~/.local/share/opencode/stats.json
    ```
 
-4. **Check system time:**
+5. **Test real-time monitoring:**
+   ```bash
+   ./test-realtime-sync.sh
+   ```
+   This simulates OpenCode updates and verifies file monitoring works
+
+6. **Check file permissions:**
+   ```bash
+   ls -la ~/.local/share/opencode/stats.json
+   ```
+   Ensure the file is readable
+
+7. **Check system time:**
    ```bash
    date
    ```
    Ensure it's correct (affects daily reset)
 
-5. **Restart extension:**
+8. **Restart extension:**
    ```bash
    gnome-extensions disable opencode-stats@fmatsos.github.com
    gnome-extensions enable opencode-stats@fmatsos.github.com
@@ -216,7 +281,7 @@ Numbers never change even after using OpenCode.
 ## Problem: Idle Notifications Don't Appear
 
 ### Symptom
-No notification after 15+ minutes of inactivity.
+No notification after configured idle time (default: 15 minutes).
 
 ### Solutions
 
@@ -228,14 +293,29 @@ No notification after 15+ minutes of inactivity.
    notify-send "Test" "This is a test notification"
    ```
 
-3. **Verify idle threshold:**
-   Check that OpenCode has been idle for 15+ minutes
+3. **Verify idle threshold in preferences:**
+   ```bash
+   gnome-extensions prefs opencode-stats@fmatsos.github.com
+   ```
+   Check "Idle Threshold" setting (1-120 minutes, default: 15)
 
 4. **Check Do Not Disturb mode:**
    Ensure it's not enabled in Quick Settings
 
-5. **Review timer status:**
+5. **Verify real-time idle detection:**
+   In preferences, ensure "Enable Real-time Idle Detection" is enabled for instant notifications
+
+6. **Check OpenCode activity:**
+   Extension uses `lastActivity` timestamp from OpenCode stats:
+   ```bash
+   cat ~/.local/share/opencode/stats.json | grep lastActivity
+   ```
+
+7. **Review timer status:**
    Extension must be running for timer to work
+
+8. **Wait for polling interval:**
+   If real-time detection is disabled, wait for the polling interval (default: 60 seconds)
 
 ## Problem: Model Breakdown Shows Nothing
 
@@ -374,28 +454,79 @@ Daily counter doesn't reset at midnight.
    rm -rf ~/.cache/gnome-shell/
    ```
 
-## Problem: Incompatible GNOME Version
+## Problem: Incompatible GNOME Version (FIXED in Latest Version)
 
 ### Symptom
-Extension shows as incompatible in Extensions app.
+Extension shows as incompatible in Extensions app with message like:
+"La version installée de cette extension (1) est incompatible avec la version actuelle de GNOME (48.4). L'extension a été désactivée."
 
-### Solutions
+Or in English:
+"The installed version of this extension (1) is incompatible with the current version of GNOME (48.4). The extension has been disabled."
 
-1. **Check metadata:**
+### Cause
+The `shell-version` array in `metadata.json` didn't include GNOME Shell 47, 48, or 49.
+
+### Solution
+
+**This is fixed in the latest version.** If you still encounter this error:
+
+1. **Update to latest version:**
    ```bash
-   cat ~/.local/share/gnome-shell/extensions/opencode-stats@fmatsos.github.com/metadata.json
+   cd gnome-opencode
+   git pull
+   ./install.sh
    ```
 
-2. **Add your version:**
-   Edit `metadata.json`, add your GNOME version to `shell-version` array
-
-3. **Disable version check** (not recommended):
-   ```bash
-   gsettings set org.gnome.shell disable-extension-version-validation true
+2. **Manual fix** (if needed):
+   Edit `~/.local/share/gnome-shell/extensions/opencode-stats@fmatsos.github.com/metadata.json`
+   
+   Update the `shell-version` array to include your version:
+   ```json
+   {
+     "shell-version": [
+       "42",
+       "43",
+       "44",
+       "45",
+       "46",
+       "47",
+       "48",
+       "49"
+     ]
+   }
    ```
 
-4. **Update extension:**
-   Check for newer version that supports your GNOME Shell
+3. **Restart GNOME Shell:**
+   - **X11**: Alt+F2, type `r`, press Enter
+   - **Wayland**: Log out and log back in
+
+4. **Enable the extension:**
+   ```bash
+   gnome-extensions enable opencode-stats@fmatsos.github.com
+   ```
+
+5. **Verify it works:**
+   ```bash
+   gnome-extensions list --enabled | grep opencode
+   ```
+
+### Alternative: Disable Version Check (Not Recommended)
+
+If you need a temporary workaround:
+```bash
+gsettings set org.gnome.shell disable-extension-version-validation true
+```
+
+**Warning**: This disables version checking for ALL extensions, which may cause stability issues.
+
+### For Developers
+
+When developing extensions for GNOME Shell, always include multiple version numbers:
+- Current stable version
+- Previous stable version (for compatibility)
+- Next 1-2 versions (for future-proofing)
+
+The extension now supports GNOME Shell 42-49.
 
 ## Advanced Troubleshooting
 

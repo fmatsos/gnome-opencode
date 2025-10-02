@@ -16,12 +16,35 @@ A GNOME Shell extension that displays usage statistics for [OpenCode](https://gi
 
 ## Requirements
 
-- GNOME Shell 42 or later
-- [OpenCode](https://github.com/sst/opencode) installed and configured
+- GNOME Shell 42 or later (tested up to 48, compatible through 49)
+- [OpenCode](https://github.com/sst/opencode) installed (optional for testing)
+- Terminal access for installation
 
 ## Installation
 
-### Method 1: Manual Installation
+### Method 1: Automated Script (Recommended)
+
+1. Clone this repository:
+   ```bash
+   git clone https://github.com/fmatsos/gnome-opencode.git
+   cd gnome-opencode
+   ```
+
+2. Run the installation script:
+   ```bash
+   ./install.sh
+   ```
+
+3. Restart GNOME Shell:
+   - On X11: Press `Alt+F2`, type `r`, and press Enter
+   - On Wayland: Log out and log back in
+
+4. Enable the extension:
+   ```bash
+   gnome-extensions enable opencode-stats@fmatsos.github.com
+   ```
+
+### Method 2: Manual Installation
 
 1. Clone this repository:
    ```bash
@@ -38,16 +61,27 @@ A GNOME Shell extension that displays usage statistics for [OpenCode](https://gi
    cp -r gnome-opencode ~/.local/share/gnome-shell/extensions/opencode-stats@fmatsos.github.com
    ```
 
-4. Restart GNOME Shell:
-   - On X11: Press `Alt+F2`, type `r`, and press Enter
-   - On Wayland: Log out and log back in
+4. Restart GNOME Shell (see above)
 
 5. Enable the extension:
    ```bash
    gnome-extensions enable opencode-stats@fmatsos.github.com
    ```
 
-### Method 2: Using GNOME Extensions Website (Coming Soon)
+### Uninstallation
+
+Run the uninstall script:
+```bash
+./uninstall.sh
+```
+
+Or manually remove:
+```bash
+gnome-extensions disable opencode-stats@fmatsos.github.com
+rm -rf ~/.local/share/gnome-shell/extensions/opencode-stats@fmatsos.github.com
+```
+
+### Method 3: Using GNOME Extensions Website (Coming Soon)
 
 The extension will be available on [extensions.gnome.org](https://extensions.gnome.org/) for easy one-click installation.
 
@@ -162,6 +196,26 @@ The extension expects OpenCode to provide statistics in the following format:
 
 ## Development
 
+### Architecture Overview
+
+**Main Components:**
+- `extension.js`: Core logic, UI components, and event handling
+  - `OpencodeStatsExtension`: Extension lifecycle management
+  - `OpencodeIndicator`: Panel menu button and statistics display
+  - `DataManager`: Data loading, file monitoring, and persistence
+- `prefs.js`: Preferences UI using Adwaita widgets and GSettings integration
+- `metadata.json`: Extension metadata (includes settings-schema configuration)
+- `schemas/org.gnome.shell.extensions.opencode-stats.gschema.xml`: GSettings schema
+- `stylesheet.css`: UI styling
+
+**Data Flow:**
+1. OpenCode writes stats to `~/.local/share/opencode/stats.json`
+2. Extension reads via file monitoring or polling
+3. Extension persists data to `~/.local/share/gnome-opencode/statistics.json`
+4. UI updates in real-time
+
+For detailed architecture documentation, see [ARCHITECTURE.md](ARCHITECTURE.md).
+
 ### Building from Source
 
 The extension is written in JavaScript using GJS (GNOME JavaScript bindings) for optimal integration with GNOME Shell.
@@ -170,18 +224,28 @@ The extension is written in JavaScript using GJS (GNOME JavaScript bindings) for
 
 ```
 gnome-opencode/
-├── extension.js          # Main extension code
-├── metadata.json         # Extension metadata
-├── stylesheet.css        # UI styling
-├── README.md            # This file
-└── LICENSE              # GPL-3.0 license
+├── extension.js                # Main extension code
+├── prefs.js                    # Preferences UI
+├── metadata.json               # Extension metadata
+├── stylesheet.css              # UI styling
+├── schemas/                    # GSettings schemas
+│   └── org.gnome.shell.extensions.opencode-stats.gschema.xml
+├── install.sh                  # Installation script
+├── uninstall.sh                # Uninstallation script
+├── test-data-generator.sh      # Generate test data
+├── test-realtime-sync.sh       # Test real-time monitoring
+├── README.md                   # This file
+├── ARCHITECTURE.md             # Architecture documentation
+├── TROUBLESHOOTING.md          # Troubleshooting guide
+├── CONTRIBUTING.md             # Contribution guidelines
+└── LICENSE                     # GPL-3.0 license
 ```
 
 ### Testing
 
-After making changes:
+**Manual Testing:**
 
-1. Reload the extension:
+1. Reload the extension after changes:
    ```bash
    gnome-extensions disable opencode-stats@fmatsos.github.com
    gnome-extensions enable opencode-stats@fmatsos.github.com
@@ -189,8 +253,31 @@ After making changes:
 
 2. View logs:
    ```bash
-   journalctl -f -o cat /usr/bin/gnome-shell
+   journalctl -f -o cat /usr/bin/gnome-shell | grep opencode
    ```
+
+**Test Scripts:**
+
+Generate mock statistics for UI testing:
+```bash
+./test-data-generator.sh
+```
+
+Test real-time file monitoring:
+```bash
+./test-realtime-sync.sh
+```
+
+**Debugging:**
+
+Enable debug mode in `extension.js` for verbose logging:
+```javascript
+const DEBUG = true;
+```
+
+Use Looking Glass (Alt+F2, type `lg`) to inspect extension state and test commands.
+
+For a comprehensive testing guide, see [TESTING_GUIDE.md](TESTING_GUIDE.md).
 
 ## Troubleshooting
 
@@ -201,25 +288,58 @@ After making changes:
    gnome-extensions list --enabled
    ```
 
-2. Look for errors in the logs:
+2. Restart GNOME Shell (X11: Alt+F2, type `r`; Wayland: log out/in)
+
+3. Look for errors in the logs:
    ```bash
    journalctl -f -o cat /usr/bin/gnome-shell | grep opencode
    ```
 
-### Statistics show 0 tokens
+### Settings-Schema Error on Extension Load
+
+If you see an error like "Expected type string for argument 'schema_id' but got type undefined":
+
+1. Verify `metadata.json` includes the settings-schema property:
+   ```json
+   {
+     "settings-schema": "org.gnome.shell.extensions.opencode-stats"
+   }
+   ```
+
+2. Restart GNOME Shell after fixing
+
+This was fixed in the latest version. Make sure you're using the updated `metadata.json`.
+
+### Statistics show 0 tokens or "Loading..."
 
 1. Verify OpenCode is running and has been used
-2. Check if OpenCode's stats file exists:
+2. Check if OpenCode's stats file exists and is valid:
    ```bash
    ls -la ~/.local/share/opencode/stats.json
+   cat ~/.local/share/opencode/stats.json
    ```
-3. Click "Refresh Statistics" in the extension menu
+3. Generate test data to verify the extension works:
+   ```bash
+   ./test-data-generator.sh
+   ```
+4. Click "Refresh Statistics" in the extension menu
 
 ### Idle warnings not appearing
 
 - Ensure you have used OpenCode recently (tokens > 0)
-- Wait for the update interval (60 seconds by default)
+- Wait for the idle threshold (default: 15 minutes)
 - Check that desktop notifications are enabled in GNOME Settings
+- Verify Do Not Disturb mode is not active
+- Check real-time idle detection is enabled in preferences
+
+### File Monitoring Not Working
+
+- Ensure "File Monitoring" is enabled in preferences
+- Check that `~/.local/share/opencode/stats.json` exists
+- Verify file permissions allow reading
+- Fallback polling should work even if file monitoring fails
+
+For a comprehensive troubleshooting guide, see [TROUBLESHOOTING.md](TROUBLESHOOTING.md).
 
 ## Contributing
 

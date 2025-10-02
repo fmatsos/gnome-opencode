@@ -18,6 +18,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Configurable idle threshold (1-120 minutes)
 - Configurable polling interval (10-600 seconds)
 - Toggle for enabling/disabling file monitoring
+- Toggle for enabling/disabling real-time idle detection
+- Test scripts for data generation and real-time sync testing
+- Comprehensive documentation updates across all files
+
+### Fixed
+- **Critical**: Settings-schema error when opening extension preferences on GNOME Shell 42+
+  - Added `settings-schema` property to `metadata.json`
+  - Fixes "Expected type string for argument 'schema_id' but got type undefined" error
+  - Extension preferences now load correctly on Fedora 42, GNOME Shell 48.4, and all supported versions
+- **Critical**: Incompatible GNOME version error on GNOME Shell 47, 48, and 49
+  - Added support for GNOME Shell versions 47, 48, and 49 in `shell-version` array
+  - Extension no longer gets automatically disabled on newer GNOME Shell versions
+  - Tested and confirmed working on Fedora 42 with GNOME Shell 48.4
+- Extension preferences UI now opens without errors
 
 ### Changed
 - Update mechanism now uses file monitoring with 60-second polling as fallback (previously polling-only)
@@ -25,6 +39,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved responsiveness - no need to wait up to 60 seconds for updates
 - Timing constants replaced with GSettings for user-configurable values
 - Idle notification behavior improved with smart reset logic
+- Enhanced documentation with troubleshooting section for settings-schema issue
+- Updated README with comprehensive installation, configuration, and development sections
 
 ## [1.0.0] - 2024-01-04
 

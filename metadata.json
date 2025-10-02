@@ -7,8 +7,12 @@
     "43",
     "44",
     "45",
-    "46"
+    "46",
+    "47",
+    "48",
+    "49"
   ],
   "version": 1,
-  "url": "https://github.com/fmatsos/gnome-opencode"
+  "url": "https://github.com/fmatsos/gnome-opencode",
+  "settings-schema": "org.gnome.shell.extensions.opencode-stats"
 }

@@ -9,7 +9,7 @@ The extension reads token usage statistics from OpenCode's local data directory.
 ## Data Flow
 
 ```
-OpenCode Session → stats.json → GNOME Extension → User Interface
+OpenCode Session → stats.json (event-driven, session.idle) → GNOME Extension (real-time monitor) → User Interface
 ```
 
 ## Statistics File Location
@@ -182,7 +182,7 @@ A "session" is defined as:
 - Ends when OpenCode is stopped or crashes
 - Resets to 0 tokens on new session start
 
-The extension uses `lastActivity` timestamp to detect idle sessions. If more than 15 minutes pass without activity, an idle warning is shown.
+The extension uses both the `lastActivity` timestamp and the OpenCode `session.idle` event for idle detection. If more than 15 minutes pass without activity, or if a `session.idle` event is received, an idle warning is shown immediately. This enables real-time idle detection and notification.
 
 ## Daily Reset
 

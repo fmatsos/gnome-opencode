@@ -8,6 +8,27 @@
 
 import type { Plugin } from "@opencode-ai/plugin";
 
+// Debug logging configuration
+const DEBUG_ENABLED = Bun.env.DEBUG_GNOME_STATS === "1";
+const DEBUG_LOG_FILE = `${Bun.env.HOME || "~"}/.local/share/opencode/gnome-stats-exporter.log`;
+
+// Helper function for conditional debug logging
+async function debugLog(level: "info" | "debug" | "error", message: string, extra?: Record<string, any>): Promise<void> {
+  if (!DEBUG_ENABLED) return;
+  
+  const timestamp = new Date().toISOString();
+  const logEntry = `[${timestamp}] [${level.toUpperCase()}] ${message}${extra ? ` | ${JSON.stringify(extra)}` : ''}\n`;
+  
+  try {
+    // Append to log file
+    const file = Bun.file(DEBUG_LOG_FILE);
+    const existingContent = await file.exists() ? await file.text() : '';
+    await Bun.write(DEBUG_LOG_FILE, existingContent + logEntry);
+  } catch (error) {
+    // Silently fail - we don't want logging errors to crash the plugin
+  }
+}
+
 interface TokenUsage {
   input: number;
   output: number;
@@ -74,7 +95,7 @@ export const GnomeStatsExporter: Plugin = async ({ client, project, directory, w
         };
       }
     } catch (error) {
-      console.error("Error loading stats file, creating new one:", error);
+      await debugLog("error", "Error loading stats file, creating new one", { error: String(error) });
       stats = createDefaultStats();
     }
   } else {
@@ -101,94 +122,102 @@ export const GnomeStatsExporter: Plugin = async ({ client, project, directory, w
         stats.session.isIdle = true;
         stats.session.idleSince = now;
         await saveStats(stats, statsFile);
-        console.log(`[GNOME Stats Exporter] Session became idle (fallback detection) after ${Math.floor(idleTime / 60000)} minutes`);
+        await debugLog("info", "Session became idle (fallback detection)", { idleMinutes: Math.floor(idleTime / 60000) });
       }
     } else if (wasIdle && idleTime < IDLE_THRESHOLD_MS) {
       // Session is no longer idle
       stats.session.isIdle = false;
       delete stats.session.idleSince;
       await saveStats(stats, statsFile);
-      console.log(`[GNOME Stats Exporter] Session is active again`);
+      await debugLog("info", "Session is active again");
     }
   }, IDLE_CHECK_INTERVAL_MS);
 
   return {
-    // Real-time idle detection via OpenCode event
-    "event": async (event) => {
+    // Event hook for both idle detection and message tracking
+    "event": async ({ event }) => {
       try {
         // Listen for session.idle event from OpenCode
         if (event.type === "session.idle") {
-          console.log(`[GNOME Stats Exporter] Received session.idle event from OpenCode`);
+          await debugLog("debug", "Received session.idle event from OpenCode");
           
           // Mark session as idle immediately
           if (!stats.session.isIdle && stats.session.totalTokens > 0) {
             stats.session.isIdle = true;
             stats.session.idleSince = Date.now();
             await saveStats(stats, statsFile);
-            console.log(`[GNOME Stats Exporter] Session marked as idle (real-time event)`);
+            await debugLog("info", "Session marked as idle (real-time event)");
           }
         }
-      } catch (error) {
-        console.error("[GNOME Stats Exporter] Error processing event:", error);
-      }
-    },
-    "chat.message": async (input, output) => {
-      try {
-        const message = output.message;
         
-        // Only process assistant messages with token usage
-        if (message.role === "assistant") {
-          const assistantMessage = message as any;
-          const tokens: TokenUsage | undefined = assistantMessage.tokens;
-          const model = assistantMessage.model || "unknown";
+        // Listen for message.updated event to track assistant messages with token usage
+        if (event.type === "message.updated") {
+          // Access message from correct event property path
+          const message = event.properties?.info;
           
-          if (tokens) {
-            // Calculate total tokens for this message
-            const totalTokens =
-              (tokens.input || 0) +
-              (tokens.output || 0) +
-              (tokens.reasoning || 0) +
-              ((tokens.cache?.read || 0) + (tokens.cache?.write || 0));
+          // Skip if no message data available
+          if (!message) {
+            await debugLog("debug", "No message data in event", { eventKeys: Object.keys(event) });
+            return;
+          }
+          
+          // Only process completed assistant messages with token usage
+          if (message?.role === "assistant" && message.time?.completed) {
+            const tokens = message.tokens;
+            const modelID = message.modelID || "unknown";
             
-            // Update session stats
-            stats.session.totalTokens += totalTokens;
-            stats.session.tokensByModel[model] = 
-              (stats.session.tokensByModel[model] || 0) + totalTokens;
-            stats.session.lastActivity = Date.now();
-            
-            // Clear idle flag when there's activity
-            if (stats.session.isIdle) {
-              stats.session.isIdle = false;
-              delete stats.session.idleSince;
+            if (tokens) {
+              // Calculate total tokens for this message
+              const totalTokens =
+                (tokens.input || 0) +
+                (tokens.output || 0) +
+                (tokens.reasoning || 0) +
+                ((tokens.cache?.read || 0) + (tokens.cache?.write || 0));
+              
+              // Update session stats
+              stats.session.totalTokens += totalTokens;
+              stats.session.tokensByModel[modelID] = 
+                (stats.session.tokensByModel[modelID] || 0) + totalTokens;
+              stats.session.lastActivity = Date.now();
+              
+              // Clear idle flag when there's activity
+              if (stats.session.isIdle) {
+                stats.session.isIdle = false;
+                delete stats.session.idleSince;
+              }
+              
+              // Update daily stats
+              const today = getTodayString();
+              if (stats.daily.date !== today) {
+                // Reset daily stats if it's a new day
+                stats.daily = {
+                  totalTokens: 0,
+                  tokensByModel: {},
+                  date: today,
+                };
+              }
+              stats.daily.totalTokens += totalTokens;
+              stats.daily.tokensByModel[modelID] = 
+                (stats.daily.tokensByModel[modelID] || 0) + totalTokens;
+              
+              // Update total stats
+              stats.total.totalTokens += totalTokens;
+              stats.total.tokensByModel[modelID] = 
+                (stats.total.tokensByModel[modelID] || 0) + totalTokens;
+              
+              // Save updated stats
+              await saveStats(stats, statsFile);
+              
+              await debugLog("info", "Tracked tokens for model", { 
+                totalTokens, 
+                modelID, 
+                cost: message.cost || 0 
+              });
             }
-            
-            // Update daily stats
-            const today = getTodayString();
-            if (stats.daily.date !== today) {
-              // Reset daily stats if it's a new day
-              stats.daily = {
-                totalTokens: 0,
-                tokensByModel: {},
-                date: today,
-              };
-            }
-            stats.daily.totalTokens += totalTokens;
-            stats.daily.tokensByModel[model] = 
-              (stats.daily.tokensByModel[model] || 0) + totalTokens;
-            
-            // Update total stats
-            stats.total.totalTokens += totalTokens;
-            stats.total.tokensByModel[model] = 
-              (stats.total.tokensByModel[model] || 0) + totalTokens;
-            
-            // Save updated stats
-            await saveStats(stats, statsFile);
-            
-            console.log(`[GNOME Stats Exporter] Tracked ${totalTokens} tokens for model ${model}`);
           }
         }
       } catch (error) {
-        console.error("[GNOME Stats Exporter] Error processing message:", error);
+        await debugLog("error", "Error processing event", { error: String(error) });
       }
     },
   };
@@ -228,7 +257,7 @@ async function saveStats(stats: Statistics, filePath: string): Promise<void> {
   try {
     await Bun.write(filePath, JSON.stringify(stats, null, 2));
   } catch (error) {
-    console.error("[GNOME Stats Exporter] Error saving stats:", error);
+    await debugLog("error", "Error saving stats", { error: String(error), filePath });
   }
 }
 

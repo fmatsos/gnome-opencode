@@ -11,6 +11,11 @@ The sync between the OpenCode plugin and GNOME extension was not real-time. The 
 - **Response Time**: < 1 second (near real-time)
 - **Events**: Responds to CHANGED, CREATED, and CHANGES_DONE_HINT
 
+### 1a. Event-Driven Idle Detection
+- **Event**: Listens for OpenCode `session.idle` event for immediate idle notification
+- **Benefit**: Users are notified of idle status in real-time, not just via polling
+- **Behavior**: The extension uses both file-change events and `session.idle` events to set the session idle state. If either indicates idleness, an idle warning is shown immediately.
+
 ### 2. "Last Update" Label
 - **Location**: Extension popup menu, between statistics and refresh button
 - **Purpose**: Shows when data was last refreshed from OpenCode

@@ -1,53 +1,43 @@
 name: Copilot Setup Steps
 
+# Automatically run the setup steps when they are changed to allow for easy validation, and
+# allow manual testing through the repository's "Actions" tab
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
   pull_request:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
 
 jobs:
-  setup-mcp-tools:
+  copilot-setup-steps:
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-
-      - name: Verify Node.js installation
-        run: |
-          node --version
-          npm --version
+          cache: "npm"
 
       - name: Install uv (Python package installer)
         run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      - name: Verify uv installation
-        run: |
-          source $HOME/.local/bin/env
-          uv --version
-
       - name: Install uvx
         run: |
           source $HOME/.local/bin/env
           uv tool install uvx || echo "uvx is included with uv"
 
-      - name: Verify uvx availability
+      - name: Serena MCP
         run: |
-          source $HOME/.local/bin/env
-          uvx --version || uv tool run --help
-
-      - name: Summary
-        run: |
-          echo "✅ Node.js and npm installed successfully"
-          echo "✅ uv/uvx installed successfully"
-          echo ""
-          echo "Tools are ready for MCP (Model Context Protocol) configuration"
+          uvx --from git+https://github.com/oraios/serena serena start-mcp-server
