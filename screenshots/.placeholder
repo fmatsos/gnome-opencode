@@ -1,0 +1,14 @@
+# Placeholder for Screenshots
+
+This directory will contain promotional screenshots for extensions.gnome.org submission.
+
+Required screenshots (3-5 PNG files):
+1. screenshot-menu.png - Main menu display
+2. screenshot-model-breakdown.png - Per-model breakdown
+3. screenshot-idle-notification.png - Idle detection warning
+4. screenshot-preferences.png - Preferences window
+5. screenshot-cost-tracking.png - Cost tracking (optional)
+
+See README.md in this directory for detailed instructions on creating screenshots.
+
+These screenshots must be created on a GNOME system with the extension installed.
