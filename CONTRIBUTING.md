@@ -43,6 +43,38 @@ Thank you for your interest in contributing to this project! This document provi
 
 ### Testing
 
+**Automated Testing (Required):**
+
+1. Install test dependencies:
+   ```bash
+   npm install
+   ```
+
+2. Run all tests before submitting:
+   ```bash
+   ./tests/run-tests.sh
+   ```
+
+3. Run specific test suites:
+   ```bash
+   # Extension tests only
+   npm test
+   
+   # Plugin tests only
+   cd opencode-plugin && npm test
+   
+   # With coverage
+   npm run test:coverage
+   ```
+
+4. Write tests for new features:
+   - Add unit tests in `tests/unit/extension/` for extension logic
+   - Add tests in `opencode-plugin/tests/` for plugin changes
+   - Use existing test patterns as examples
+   - See [tests/README.md](tests/README.md) for details
+
+**Manual Testing:**
+
 1. Generate test data:
    ```bash
    ./test-data-generator.sh
@@ -77,23 +109,37 @@ Thank you for your interest in contributing to this project! This document provi
 
 ## Pull Request Process
 
-1. Commit your changes with clear, descriptive messages:
+1. Ensure all tests pass:
+   ```bash
+   ./tests/run-tests.sh
+   ```
+
+2. Commit your changes with clear, descriptive messages:
    ```bash
    git commit -m "Add feature: description of feature"
    ```
 
-2. Push to your fork:
+3. Push to your fork:
    ```bash
    git push origin feature/your-feature-name
    ```
 
-3. Open a Pull Request on GitHub with:
+4. Open a Pull Request on GitHub with:
    - A clear title describing the change
    - A detailed description of what changed and why
    - Screenshots for UI changes
-   - Test results
+   - Test results (CI will run automatically)
+   - Confirmation that all tests pass locally
 
-4. Wait for review and address any feedback
+5. Wait for review and address any feedback
+
+**Note:** The CI pipeline will automatically:
+- Run all unit tests
+- Validate extension files
+- Check code quality
+- Build the extension package
+
+Pull requests must pass all CI checks before merging.
 
 ## Types of Contributions
 
