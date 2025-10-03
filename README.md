@@ -451,6 +451,19 @@ This was fixed in the latest version. Make sure you're using the updated `metada
 
 For a comprehensive troubleshooting guide, see [TROUBLESHOOTING.md](TROUBLESHOOTING.md).
 
+## Distribution
+
+### GNOME Extensions Website Submission
+
+The extension is prepared for submission to extensions.gnome.org. Complete documentation is available in [SUBMISSION_INDEX.md](SUBMISSION_INDEX.md), which includes:
+
+- **Submission Guide** - Complete step-by-step process
+- **Testing Procedures** - Package validation and verification
+- **Screenshot Guidelines** - Creating promotional images
+- **Post-Approval Actions** - Steps after extension is approved
+
+For a quick overview, see [SUBMISSION_CHECKLIST.md](SUBMISSION_CHECKLIST.md).
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit issues or pull requests.
