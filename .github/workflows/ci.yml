@@ -1,0 +1,129 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint-and-validate:
+    name: Lint and Validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq glib-2.0-dev
+      
+      - name: Validate extension files
+        run: ./tests/validate-extension.sh
+
+  test-extension:
+    name: Test Extension
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install npm dependencies
+        run: npm install
+      
+      - name: Run extension unit tests
+        run: npm test
+
+  test-plugin:
+    name: Test OpenCode Plugin
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install root dependencies
+        run: npm install
+      
+      - name: Run plugin tests
+        working-directory: opencode-plugin
+        run: npm test
+
+  test-coverage:
+    name: Code Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm install
+      
+      - name: Generate coverage report
+        run: npm run test:coverage
+      
+      - name: Upload coverage to artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 30
+
+  package:
+    name: Build Package
+    needs: [lint-and-validate, test-extension, test-plugin]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y glib-2.0-dev gettext
+      
+      - name: Build extension package
+        run: |
+          chmod +x package.sh
+          ./package.sh
+      
+      - name: Verify package contents
+        run: |
+          if [ -f opencode-stats@fmatsos.github.com.shell-extension.zip ]; then
+            unzip -l opencode-stats@fmatsos.github.com.shell-extension.zip
+            echo "✅ Package created successfully"
+          else
+            echo "❌ Package file not found"
+            exit 1
+          fi
+      
+      - name: Upload package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: extension-package
+          path: "*.shell-extension.zip"
+          retention-days: 30

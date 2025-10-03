@@ -1,0 +1,37 @@
+{
+  "name": "gnome-opencode-extension-tests",
+  "version": "1.0.0",
+  "description": "Test suite for GNOME OpenCode Statistics Extension",
+  "type": "module",
+  "scripts": {
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test:extension": "node --experimental-vm-modules node_modules/jest/bin/jest.js tests/unit/extension",
+    "test:plugin": "cd opencode-plugin && npm test",
+    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
+    "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage"
+  },
+  "keywords": [
+    "gnome",
+    "extension",
+    "opencode",
+    "testing"
+  ],
+  "author": "fmatsos",
+  "license": "GPL-3.0-or-later",
+  "devDependencies": {
+    "@jest/globals": "^29.7.0",
+    "@types/jest": "^29.5.11",
+    "jest": "^29.7.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/tests/unit/**/*.test.js"
+    ],
+    "transform": {},
+    "collectCoverageFrom": [
+      "tests/helpers/**/*.js"
+    ],
+    "moduleNameMapper": {}
+  }
+}

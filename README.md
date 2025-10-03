@@ -297,6 +297,37 @@ gnome-opencode/
 
 ### Testing
 
+**Automated Testing:**
+
+The extension now includes a comprehensive test suite with 73+ unit tests:
+
+```bash
+# Run all tests (unit tests + validation)
+./tests/run-tests.sh
+
+# Run extension tests only
+npm test
+
+# Run plugin tests only
+cd opencode-plugin && npm test
+
+# Run with coverage reporting
+npm run test:coverage
+
+# Watch mode for development
+npm run test:watch
+```
+
+Test coverage includes:
+- Token and cost formatting
+- Date handling and daily resets
+- Idle detection logic
+- Statistics initialization and updates
+- Plugin token tracking
+- Edge case handling
+
+See [tests/README.md](tests/README.md) for detailed testing documentation.
+
 **Manual Testing:**
 
 1. Reload the extension after changes:
@@ -330,8 +361,6 @@ const DEBUG = true;
 ```
 
 Use Looking Glass (Alt+F2, type `lg`) to inspect extension state and test commands.
-
-For a comprehensive testing guide, see [TESTING_GUIDE.md](TESTING_GUIDE.md).
 
 ## Troubleshooting
 
