@@ -20,8 +20,15 @@ mkdir -p "$PACKAGE_DIR"
 # Copy extension files
 echo "Copying extension files..."
 cp extension.js "$PACKAGE_DIR/"
+cp prefs.js "$PACKAGE_DIR/"
 cp metadata.json "$PACKAGE_DIR/"
 cp stylesheet.css "$PACKAGE_DIR/"
+
+# Copy schemas directory
+echo "Copying schemas..."
+mkdir -p "$PACKAGE_DIR/schemas"
+cp schemas/*.xml "$PACKAGE_DIR/schemas/"
+glib-compile-schemas "$PACKAGE_DIR/schemas/" 2>/dev/null || echo "⚠️  glib-compile-schemas not available, schema will be compiled on installation"
 
 # Create the zip file
 echo "Creating package: $PACKAGE_NAME"

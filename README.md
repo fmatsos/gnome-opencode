@@ -86,7 +86,34 @@ rm -rf ~/.local/share/gnome-shell/extensions/opencode-stats@fmatsos.github.com
 
 ### Method 3: Using GNOME Extensions Website (Coming Soon)
 
-The extension will be available on [extensions.gnome.org](https://extensions.gnome.org/) for easy one-click installation.
+The extension is currently under review for submission to [extensions.gnome.org](https://extensions.gnome.org/). Once approved, it will be available for easy one-click installation.
+
+<!-- 
+POST-APPROVAL: Replace the above section with:
+
+### Method 1: GNOME Extensions Website (Recommended)
+
+Install directly from [extensions.gnome.org](https://extensions.gnome.org/extension/XXXX/opencode-statistics/)
+
+1. Visit the extension page using a web browser with GNOME Shell integration
+2. Click the "Install" toggle button
+3. Confirm the installation in the browser prompt
+4. The extension will be automatically installed and enabled
+
+Or install via command line:
+```bash
+# Install from extensions.gnome.org using the extension ID
+gnome-extensions install XXXX
+```
+
+### Method 2: Automated Script
+
+[Move current Method 1 here]
+
+### Method 3: Manual Installation
+
+[Move current Method 2 here]
+-->
 
 ## Usage
 
@@ -450,6 +477,7 @@ This project is licensed under the GNU General Public License v3.0 or later - se
 - [OpenCode Website](https://opencode.ai)
 - [GNOME Extensions](https://extensions.gnome.org/)
 - [GNOME Shell Extension Documentation](https://gjs.guide/extensions/)
+- [Extension Submission Guide](SUBMISSION.md) - Complete guide for submitting to extensions.gnome.org
 
 ## Support
 

@@ -183,7 +183,7 @@ Planned improvements:
 
 ## Creating Screenshots
 
-For contributors creating screenshots:
+For contributors creating screenshots for the project or extensions.gnome.org submission:
 
 ### Requirements
 - GNOME Shell 42 or later
@@ -191,16 +191,62 @@ For contributors creating screenshots:
 - Test data generated (`./test-data-generator.sh`)
 
 ### Recommended Tools
-- GNOME Screenshot (built-in)
-- Flameshot
+- GNOME Screenshot (built-in) - `gnome-screenshot -a` for area selection
+- Flameshot - More advanced features and editing
 - Spectacle (KDE, but works on GNOME)
+- Keyboard shortcuts: PrtScn (full screen), Shift+PrtScn (area), Alt+PrtScn (window)
 
 ### Best Practices
-1. Use default GNOME theme for consistency
-2. Show realistic data (not zeros)
-3. Capture clean desktop (no personal info)
+1. Use default GNOME theme (Adwaita) for consistency
+2. Show realistic data (not zeros or "Loading...")
+3. Capture clean desktop (no personal info, clutter, or unrelated apps)
 4. Include mouse cursor for clickable items
 5. Use PNG format for quality
+6. High resolution (1920x1080 or higher recommended)
+7. File size < 500KB per image for web submission
+8. Clear, readable text and UI elements
+
+### Screenshot Types for Extensions.gnome.org
+
+#### Primary Screenshots (Required)
+
+1. **Main Menu Display** (screenshot-menu.png)
+   - Top bar with extension icon visible
+   - Dropdown menu open showing:
+     - Session statistics with tokens/costs
+     - Daily statistics with tokens/costs
+     - Total statistics with tokens/costs
+     - "Last update" timestamp
+     - "Refresh Statistics" button
+   - Clean background, no distractions
+   - This is the FIRST impression users get
+
+2. **Model Breakdown Notification** (screenshot-model-breakdown.png)
+   - GNOME notification showing per-model statistics
+   - Multiple models listed with token counts and costs
+   - Clear, readable text
+   - Shows the detail view feature
+
+3. **Idle Detection Warning** (screenshot-idle-notification.png)
+   - GNOME notification for idle session
+   - Shows "OpenCode Session Idle" message
+   - Demonstrates automatic monitoring feature
+
+4. **Preferences Window** (screenshot-preferences.png)
+   - Extension preferences UI
+   - Shows all configuration options:
+     - Idle threshold slider
+     - Polling interval
+     - File monitoring toggle
+     - Budget settings
+   - Well-organized, professional layout
+
+#### Optional Screenshots
+
+5. **Cost Tracking Display** (screenshot-cost-tracking.png)
+   - Focus on monetary cost display
+   - Shows budget tracking in action
+   - Highlights financial awareness feature
 
 ### Areas to Screenshot
 1. Top bar with extension icon
@@ -211,6 +257,57 @@ For contributors creating screenshots:
 6. Idle warning notification
 7. Refresh action in progress
 8. "Last update" label showing different time formats
+9. Preferences window with all settings
+10. Cost tracking features (if available)
+
+### Image Optimization
+
+After creating screenshots, optimize for web:
+
+```bash
+# Using optipng (preserves quality)
+optipng -o7 screenshots/*.png
+
+# Using pngquant (reduces size)
+pngquant --quality=80-95 screenshots/*.png --ext .png --force
+
+# Check file sizes
+ls -lh screenshots/
+```
+
+### Screenshot Workflow
+
+```bash
+# Step 1: Generate test data
+./test-data-generator.sh
+
+# Step 2: Enable extension
+gnome-extensions enable opencode-stats@fmatsos.github.com
+
+# Step 3: Take screenshots
+# Method A: Use GNOME Screenshot with area selection
+gnome-screenshot -a
+
+# Method B: Use keyboard shortcut
+# Press Shift+PrtScn, then select area
+
+# Step 4: Save to screenshots directory
+# Name files descriptively: screenshot-menu.png, etc.
+
+# Step 5: Verify and optimize
+ls -lh screenshots/
+optipng -o7 screenshots/*.png
+```
+
+### Screenshot Captions for Submission
+
+When uploading to extensions.gnome.org, use descriptive captions:
+
+- **screenshot-menu.png:** "Main statistics menu showing session, daily, and total token usage with real-time updates"
+- **screenshot-model-breakdown.png:** "Detailed per-model token breakdown with cost tracking"
+- **screenshot-idle-notification.png:** "Automatic idle session detection with configurable threshold"
+- **screenshot-preferences.png:** "Comprehensive preferences for customizing monitoring behavior"
+- **screenshot-cost-tracking.png:** "Real-time cost tracking to manage AI API spending"
 
 ## Example Visual Layouts
 
