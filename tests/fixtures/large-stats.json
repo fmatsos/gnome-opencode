@@ -1,0 +1,42 @@
+{
+  "session": {
+    "totalTokens": 5000000,
+    "tokensByModel": {
+      "gpt-4": 3000000,
+      "claude-3-opus": 2000000
+    },
+    "totalCost": 150.50,
+    "costsByModel": {
+      "gpt-4": 90.30,
+      "claude-3-opus": 60.20
+    },
+    "lastActivity": 1704067200000,
+    "startTime": 1704063600000
+  },
+  "daily": {
+    "totalTokens": 1000000,
+    "tokensByModel": {
+      "gpt-4": 600000,
+      "claude-3-opus": 400000
+    },
+    "totalCost": 30.10,
+    "costsByModel": {
+      "gpt-4": 18.06,
+      "claude-3-opus": 12.04
+    },
+    "date": "2025-01-15"
+  },
+  "total": {
+    "totalTokens": 10000000,
+    "tokensByModel": {
+      "gpt-4": 6000000,
+      "claude-3-opus": 4000000
+    },
+    "totalCost": 300.50,
+    "costsByModel": {
+      "gpt-4": 180.30,
+      "claude-3-opus": 120.20
+    },
+    "installDate": 1234000000000
+  }
+}

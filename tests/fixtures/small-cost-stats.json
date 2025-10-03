@@ -1,0 +1,36 @@
+{
+  "session": {
+    "totalTokens": 500,
+    "tokensByModel": {
+      "gpt-3.5": 500
+    },
+    "totalCost": 0.0075,
+    "costsByModel": {
+      "gpt-3.5": 0.0075
+    },
+    "lastActivity": 1704067200000,
+    "startTime": 1704063600000
+  },
+  "daily": {
+    "totalTokens": 500,
+    "tokensByModel": {
+      "gpt-3.5": 500
+    },
+    "totalCost": 0.0075,
+    "costsByModel": {
+      "gpt-3.5": 0.0075
+    },
+    "date": "2025-01-15"
+  },
+  "total": {
+    "totalTokens": 500,
+    "tokensByModel": {
+      "gpt-3.5": 500
+    },
+    "totalCost": 0.0075,
+    "costsByModel": {
+      "gpt-3.5": 0.0075
+    },
+    "installDate": 1234000000000
+  }
+}
